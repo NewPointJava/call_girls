@@ -1,4 +1,7 @@
-from settings import check_in_price, room_price, bathroom_price, check_in_time, room_time, bathroom_time, cleaning_frequency_dict
+from datetime import datetime
+
+from settings import check_in_price, room_price, bathroom_price, check_in_time, room_time, bathroom_time, cleaning_frequency_and_discount_dict
+from translate_func import translate_month, translate_day_of_the_week
 
 
 def cost_calculation_st1(call_data):
@@ -6,7 +9,6 @@ def cost_calculation_st1(call_data):
     room_amount = int(call_data[1])
     bathroom_amount = int(call_data[2])
 
-    print(f'room ={room_amount}, bathromm ={bathroom_amount}')
     ending_bathroom = ["санузел", "санузла", "санузлов"]
 
     if room_amount <= 1:
@@ -37,9 +39,9 @@ def order_card(call_data, time_order, cleaning_frequency_int):
     bathroom_amount = int(call_data[1])
 
     time_order = time_order.split(" ")
-    print(time_order)
-    time_order = time_order[0] + " " + time_order[1] + " " + str(int(time_order[3]) + 1) + " 09:00"
-    print(time_order)
+    time_order[0] = translate_day_of_the_week(time_order[0])
+    time_order[1] = translate_month(time_order[1])
+    time_order = time_order[0] + " " + str(int(time_order[3]) + 1) + " " + time_order[1] + " 09:00"
 
     if room_amount <= 1:
         ending_room = "жилой"
@@ -55,15 +57,57 @@ def order_card(call_data, time_order, cleaning_frequency_int):
     if cleaning_time % 1 == 0:
         cleaning_time = int(cleaning_time)
 
-    cleaning_frequency = cleaning_frequency_dict[str(cleaning_frequency_int)]
-    discount = cleaning_frequency[1]
+    cleaning_frequency = cleaning_frequency_and_discount_dict[str(cleaning_frequency_int)]
+    discount_percent = cleaning_frequency[1]
+    print(discount_percent)
     cleaning_frequency = cleaning_frequency[0]
-    print(cleaning_frequency, discount)
-
-    text = f'Уборка квартиры с {room_amount} {ending_room} и  {bathroom_amount} {ending_bathroom} комнатами\n\n'\
+    standart_price = check_in_price + room_amount * room_price + bathroom_amount * bathroom_price
+    text = f'Уборка квартиры с {room_amount} {ending_room} и {bathroom_amount} {ending_bathroom} комнатами\n\n'\
             f'Дата уборки: {time_order}\n'\
             f'Время уборки: ~ {cleaning_time} ч.\n'\
-            f'Регулярность: {cleaning_frequency}\n\n'\
-            f'Стандарнатная стоимость: {check_in_price + room_amount * room_price + bathroom_amount * bathroom_price}'
+            f'Регулярность: {cleaning_frequency}\n'\
+            f'Стандарнатная стоимость: {standart_price}р'
+    final_price = standart_price
+    discount_amount = round(final_price*discount_percent, 2)
+    if discount_percent > 0:
+        text+= f'\nСумма скидки за регулярность: {discount_amount}руб'
 
-    return text
+    final_price = final_price - discount_amount
+    text += f'\nК оплате: {final_price-discount_percent}р'
+    return text, room_amount,bathroom_amount
+
+
+def edit_order_caption_date(caption, cleaning_date):
+    caption = caption.split("\n")
+    date_and_time = caption[2]
+    date_and_time = date_and_time.split(" ")
+    cleaning_date = cleaning_date.strftime("%b %a %d")
+    cleaning_date = str(cleaning_date)
+    cleaning_date = cleaning_date.split(" ")
+    print(cleaning_date)
+    cleaning_date[0] = translate_month(cleaning_date[0])
+    cleaning_date[1] = translate_day_of_the_week(cleaning_date[1])
+    cleaning_date = cleaning_date[1] + " " + cleaning_date[2] + " " + cleaning_date[0]
+    caption[2] = f'Дата уборки: {cleaning_date} {date_and_time[-1]}'
+    new_caption = "\n".join(caption)
+    return new_caption
+
+
+def edit_order_caption_time(caption, cleaning_time):
+    caption = caption.split("\n")
+    date_and_time = caption[2]
+    date_and_time = date_and_time.split(" ")
+    date_and_time[-1] = cleaning_time
+    date_and_time = " ".join(date_and_time)
+    caption[2] = date_and_time
+    new_caption = "\n".join(caption)
+
+    room_and_bathroom_amount = caption[0]
+    room_and_bathroom_amount = room_and_bathroom_amount.split(" ")
+    room_amoun = int(room_and_bathroom_amount[3])
+    bathroom_amount = int(room_and_bathroom_amount[6])
+    return new_caption, room_amoun, bathroom_amount
+
+
+def edit_order_caption_frequency(caption):
+    print()
