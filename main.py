@@ -3,14 +3,53 @@ from datetime import date, timedelta
 
 from telebot.types import InlineKeyboardButton
 from telegram_bot_calendar import DetailedTelegramCalendar, LSTEP
-from keyboards import price_1st_step, st2_keyboard, choose_time_keyboard, choose_frequency_keyboard
-from service_function import cost_calculation_st1, order_card, edit_order_caption_date, edit_order_caption_time
+from keyboards import price_1st_step, st2_keyboard, choose_time_keyboard, choose_frequency_keyboard, \
+    st2_frequency_keyboard, extra_service_st1_keyboard, st2_extra_service_keyboard
+from service_function import cost_calculation_st1, order_card, edit_order_caption_date, edit_order_caption_time, \
+    edit_caption_extra_service, edit_caption_discount
 from settings import bot, room_price, bathroom_price, check_in_price
+
+
+@bot.message_handler(commands=['help'])
+def help_user(message):
+    text = f'ПОЛЬЗОВАТЕЛЯМ\n'\
+            f'Этот бот создан чтобы помочь вам сделать заказ на уборку в клининговой компании КлинниБогини\n'\
+            f'Для создания заказа используйте команду /new_order\n\n'\
+            f'Так же вы можете просмотреть отзывы о нашей компании\n'\
+            f'Для просмотра отзывов используйте команду /view_feedbacks\n\n'\
+            f'Чтобы получить больше информации о компании используйте команду /info\n\n\n'\
+            f'КЛИНЕРАМ\n'\
+            f'Чтобы получить доп информацию о возможностях бота\n'\
+            f'Используйте команду /cl_help\n\n\n'\
+            f'АДМИНИСТРАТОРАМ\n'\
+            f'Чтобы получить доп информацию о возможностях бота\n'\
+            f'Используйте команду /ad_help'
+
+    bot.send_message(message.chat.id, text)
+
+@bot.message_handler(commands=['info'])
+def info(message):
+    text = f'КлинниБогини - Уборка квартир и домов в Минске и районе, хорошо или бесплатно\n'\
+        f' +375447111185 (A1,Viber,Telegram,Whatsapp)\n\n'\
+        f'Режим работы\n'\
+        f'с 9.00 до 21.00 - без выходных\n\n'\
+        f'Наш сайт\n'\
+        f'cleanny.by\n\n'\
+        f'Блог КлинниБогини\n'\
+        f'cleanny.by/blog\n\n'\
+        f'Отзывы\n'\
+        f'/view_feedbacks\n'\
+        f'а так же на FB - www.facebook.com/pg/cleanny.happy.home/reviews/\n\n'\
+        f'Чек-лист уборки - https://drive.google.com/file/d/1gH8ogErgeWSeqIPhM9XQVPitbmzHxG1v/view\n\n'\
+        f'Сделать заказ - /new_order\n\n'\
+        f'© 2022 ООО «Клинни Про», УНП 192598987 Республика Беларусь, 220036, Минск, ул. Западная 13, часть комнаты 10-Ф'
+    bot.send_message(message.chat.id, text)
 
 
 @bot.message_handler(commands=['start'])
 def start(message):
-    bot.send_message(message.chat.id, "Ниже будет представлен расчёт стоимости.\nВы можете увеличивать и уменьшать количество комнат и санузлов.\n Стоимость будет меняться автоматически")
+    bot.send_message(message.chat.id, "Ниже будет представлен расчёт стоимости.\nВы можете увеличивать и уменьшать количество комнат и санузлов.\n "\
+            "Далее вы сможете изменять время, частоту и доп. услуги.\n\nСтоимость будет меняться автоматически")
     bot.send_message(message.chat.id, f'1 - комната 1 - санузел = {room_price + bathroom_price + check_in_price}р', reply_markup=price_1st_step(1, 1))
 
 
@@ -59,11 +98,33 @@ def call(call):
             cleaning_time = call.data.split("$")
             cleaning_time = cleaning_time[1]
             caption, room_amount, bathroom_amount = edit_order_caption_time(call.message.caption, cleaning_time)
-            bot.edit_message_caption(caption, call.message.chat.id,call.message.message_id, reply_markup=st2_keyboard(room_amount,bathroom_amount))
+            try:
+                bot.edit_message_caption(caption, call.message.chat.id, call.message.message_id, reply_markup=st2_extra_service_keyboard(room_amount, bathroom_amount))
+            except:
+                bot.edit_message_reply_markup(call.message.chat.id,call.message.message_id, reply_markup=st2_extra_service_keyboard(room_amount, bathroom_amount))
 
-        if  call.data[4:] == "frequency":
-            bot.edit_message_reply_markup(call.message.chat.id,call.message.message_id,reply_markup=choose_frequency_keyboard())
+        if call.data[4:] == "extra":
+            bot.edit_message_reply_markup(call.message.chat.id,call.message.message_id, reply_markup=extra_service_st1_keyboard(call.message.caption))
 
+        if call.data[4:6] == "en":
+            caption = edit_caption_extra_service(call.message.caption, call.data)
+            bot.edit_message_caption(caption, call.message.chat.id, call.message.message_id, reply_markup=extra_service_st1_keyboard(caption))
+
+
+        if call.data[4:] == "frequency":
+            bot.edit_message_reply_markup(call.message.chat.id, call.message.message_id, reply_markup=st2_frequency_keyboard(call.message.caption))
+
+        if call.data[4:6] == "fn":
+            bot.edit_message_reply_markup(call.message.chat.id,call.message.message_id, reply_markup=choose_frequency_keyboard())
+
+        if call.data[4:6] == "ff":
+            discount = call.data.split("%")
+            discount = discount[-1]
+            caption = edit_caption_discount(call.message.caption, discount)
+            try:
+                bot.edit_message_caption(caption, call.message.chat.id, call.message.message_id, reply_markup=choose_frequency_keyboard())
+            except:
+                print("nothing to change")
 
 
 print("Ready")
