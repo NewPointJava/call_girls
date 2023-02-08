@@ -59,7 +59,6 @@ def order_card(call_data, time_order, cleaning_frequency_int):
 
     cleaning_frequency = cleaning_frequency_and_discount_dict[str(cleaning_frequency_int)]
     discount_percent = cleaning_frequency[1]
-    print(discount_percent)
     cleaning_frequency = cleaning_frequency[0]
     standart_price = check_in_price + room_amount * room_price + bathroom_amount * bathroom_price
     text = f'Уборка квартиры с {room_amount} {ending_room} и {bathroom_amount} {ending_bathroom} комнатами\n\n'\
@@ -84,7 +83,6 @@ def edit_order_caption_date(caption, cleaning_date):
     cleaning_date = cleaning_date.strftime("%b %a %d")
     cleaning_date = str(cleaning_date)
     cleaning_date = cleaning_date.split(" ")
-    print(cleaning_date)
     cleaning_date[0] = translate_month(cleaning_date[0])
     cleaning_date[1] = translate_day_of_the_week(cleaning_date[1])
     cleaning_date = cleaning_date[1] + " " + cleaning_date[2] + " " + cleaning_date[0]
@@ -108,6 +106,7 @@ def edit_order_caption_time(caption, cleaning_time):
     bathroom_amount = int(room_and_bathroom_amount[6])
     return new_caption, room_amoun, bathroom_amount
 
+
 def edit_caption_extra_service(caption, call_data):
     caption = caption.split("\n")
     sign = call_data[-1]
@@ -118,18 +117,14 @@ def edit_caption_extra_service(caption, call_data):
     for i in range(len(caption)-1):
         if "Стандарнатная стоимость" in caption[i]:
             standart_price_pos = i
+            break
 
     standart_price = caption[standart_price_pos].split(" ")
     standart_price = int(standart_price[-1].replace('р', ""))
 
     old_time = caption[3]
-    old_time.split(" ")
-    for i in range(len(old_time) - 1):
-        if old_time[i].isdigit():
-            hour = int(old_time[i])
-
-
-
+    old_time = old_time.split(" ")
+    hour = float(old_time[3])
 
     if sign =="+":
         if "Дополнительные услуги" not in caption[standart_price_pos + 1]:
@@ -157,7 +152,6 @@ def edit_caption_extra_service(caption, call_data):
         extra_price = 0
         for i in range(standart_price_pos+2, len(caption)-2):
             price = caption[i].split(" ")
-            print(price)
             price = int(price[-1])
             extra_price += price
         caption[-2] = "Стоимость уборки с дополнительными услугами: " + str(standart_price + extra_price) +"р"
@@ -189,13 +183,10 @@ def edit_caption_discount(caption, discount_percent):
             extra_price = caption[i].split(" ")
             extra_price = int(extra_price[-1].replace("р", ""))
 
-
     if discount_percent == 0:
         for i in range(len(caption)-1):
             if "Сумма скидки за регулярность" in caption[i]:
-                discount = caption.pop(i)
-                discount = discount.split(" ")
-                discount = discount[-1].replace("р", "")
+                caption.pop(i)
                 if extra_price != 0:
                     caption[-1] = "К оплате: " + str(extra_price) + "р"
                 else:
@@ -230,3 +221,4 @@ def edit_caption_discount(caption, discount_percent):
     new_caption = "\n".join(caption)
 
     return new_caption
+

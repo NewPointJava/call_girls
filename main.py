@@ -4,10 +4,20 @@ from datetime import date, timedelta
 from telebot.types import InlineKeyboardButton
 from telegram_bot_calendar import DetailedTelegramCalendar, LSTEP
 from keyboards import price_1st_step, st2_keyboard, choose_time_keyboard, choose_frequency_keyboard, \
-    st2_frequency_keyboard, extra_service_st1_keyboard, st2_extra_service_keyboard
+    st2_frequency_keyboard, extra_service_st1_keyboard, st2_extra_service_keyboard, check_order_keyboard, \
+    thanks_keyboard
+from next_step_handlers_func import cath_addres
 from service_function import cost_calculation_st1, order_card, edit_order_caption_date, edit_order_caption_time, \
     edit_caption_extra_service, edit_caption_discount
-from settings import bot, room_price, bathroom_price, check_in_price
+from settings import bot, room_price, bathroom_price, check_in_price,orders
+
+
+@bot.message_handler(commands=['start'])
+def start(message):
+    text = 'Улица:\nДом:\nКвартира:\n\nОтправьте сообщением название улицы ⬇️'
+    m = bot.send_message(message.chat.id, text)
+    m_id = m.message_id
+    bot.register_next_step_handler(m, cath_addres, text, m_id)
 
 
 @bot.message_handler(commands=['help'])
@@ -46,10 +56,10 @@ def info(message):
     bot.send_message(message.chat.id, text)
 
 
-@bot.message_handler(commands=['start'])
-def start(message):
+@bot.message_handler(commands=['new_order'])
+def new_order(message):
     bot.send_message(message.chat.id, "Ниже будет представлен расчёт стоимости.\nВы можете увеличивать и уменьшать количество комнат и санузлов.\n "\
-            "Далее вы сможете изменять время, частоту и доп. услуги.\n\nСтоимость будет меняться автоматически")
+            "Далее вы сможете изменять время, частоту и доп. услуги.\n\nСтоимость будет меняться автоматически", reply_markup=thanks_keyboard)
     bot.send_message(message.chat.id, f'1 - комната 1 - санузел = {room_price + bathroom_price + check_in_price}р', reply_markup=price_1st_step(1, 1))
 
 
@@ -65,6 +75,7 @@ def cal(call):
 def call(call):
     #print(call)
     print("call data = ", call.data)
+    print("message_id =", call.message.message_id)
     if call.data[:2] == "qt":
         bot.delete_message(call.message.chat.id, call.message.message_id)
 
@@ -125,6 +136,19 @@ def call(call):
                 bot.edit_message_caption(caption, call.message.chat.id, call.message.message_id, reply_markup=choose_frequency_keyboard())
             except:
                 print("nothing to change")
+        if call.data[4:] == "check_order":
+            bot.edit_message_reply_markup(call.message.chat.id,call.message.message_id,reply_markup=check_order_keyboard(call.message.caption))
+
+    if call.data[:3] == "st3":
+        if call.data[4:] == "address":
+            order_id = call.message.message_id
+            print("!!!!!", order_id)
+            orders[call.message.chat.id] = call.message.caption
+            bot.edit_message_reply_markup(call.message.chat.id, call.message.message_id)
+            text = 'Улица:\nДом:\nКвартира:\n\nОтправьте сообщением название улицы ⬇️'
+            m = bot.send_message(call.message.chat.id, text)
+            m_id = m.message_id
+            bot.register_next_step_handler(m, cath_addres, text, m_id, order_id)
 
 
 print("Ready")

@@ -2,6 +2,11 @@ from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 from settings import extra_name_hour_cost_dict
 
+exit_button = InlineKeyboardButton("Выход ❌", callback_data="qt")
+thanks_buttom = InlineKeyboardButton("Cпасибо ☑", callback_data="qt")
+thanks_keyboard = InlineKeyboardMarkup().add(thanks_buttom)
+
+
 
 def price_1st_step(room_amount, bathroom_amount):
     keyboard = InlineKeyboardMarkup(row_width=2)
@@ -11,7 +16,6 @@ def price_1st_step(room_amount, bathroom_amount):
     increase_bathroom = InlineKeyboardButton("кол-во санузлов ➕", callback_data="st1*" + str(room_amount) + "*" + str((bathroom_amount +1)))
     decrease_bathroom = InlineKeyboardButton("кол-во санузлов ➖", callback_data="st1*" + str(room_amount) + "*" + str((bathroom_amount-1)))
     second_step_bottom = InlineKeyboardButton("Рассчитать стоимость ☑️", callback_data="st1$" + str(room_amount) + "*" + str(bathroom_amount))
-    exitbutton = InlineKeyboardButton(text="Выход", callback_data="qt")
 
     if room_amount != 1 and room_amount != 10:
         keyboard.add(increase_room, decrease_room)
@@ -28,7 +32,7 @@ def price_1st_step(room_amount, bathroom_amount):
         keyboard.add(decrease_bathroom)
 
     keyboard.add(second_step_bottom)
-    keyboard.add(exitbutton)
+    keyboard.add(exit_button)
 
     return keyboard
 
@@ -37,12 +41,9 @@ def st2_keyboard(room_amount, bathroom_amount):
     keyboard = InlineKeyboardMarkup()
     choose_date_bottom = InlineKeyboardButton("Выбрать дату уборки 🗓", callback_data="st2*date")
     return_bottom = InlineKeyboardButton("Вернуться назад к выбору количества комнат 🔙", callback_data="st1:"+str(room_amount) + "*" + str(bathroom_amount))
-    exitbutton = InlineKeyboardButton("Выход", callback_data="qt")
     keyboard.add(choose_date_bottom)
-    # choose_frequency_bottom = InlineKeyboardButton("Выбрать регулярность уборки", callback_data="st2*frequency")
-    #keyboard.add(choose_frequency_bottom)
     keyboard.add(return_bottom)
-    keyboard.add(exitbutton)
+    keyboard.add(exit_button)
     return keyboard
 
 
@@ -68,11 +69,10 @@ def st2_extra_service_keyboard(room_amount, bathroom_amount):
 
     choose_extra_service_bottom = InlineKeyboardButton("Выбрать дополнительные опции ☑️", callback_data="st2*extra")
     return_bottom = InlineKeyboardButton("Вернуться на шаг назад 🔙", callback_data="st1$"+ str(room_amount) + "*" + str(bathroom_amount))
-    exitbutton = InlineKeyboardButton("Выход", callback_data="qt")
 
     keyboard.add(choose_extra_service_bottom)
     keyboard.add(return_bottom)
-    keyboard.add(exitbutton)
+    keyboard.add(exit_button)
 
     return keyboard
 
@@ -112,11 +112,10 @@ def st2_frequency_keyboard(caption):
     keyboard = InlineKeyboardMarkup()
     choose_frequency_bottom = InlineKeyboardButton("Выбрать частоту уборки ☑️", callback_data="st2*fn")
     return_bottom = InlineKeyboardButton("Вернуться на шаг назад 🔙", callback_data="st2*time$" + time)
-    exitbutton = InlineKeyboardButton("Выход", callback_data="qt")
 
     keyboard.add(choose_frequency_bottom)
     keyboard.add(return_bottom)
-    keyboard.add(exitbutton)
+    keyboard.add(exit_button)
 
     return keyboard
 
@@ -130,10 +129,29 @@ def choose_frequency_keyboard():
     frequency_one_time_bottom = InlineKeyboardButton("1 раз или первый раз", callback_data="st2*ff%0")
     return_bottom = InlineKeyboardButton("Вернуться на шаг назад 🔙", callback_data="st2*frequency")
     next_bottom = InlineKeyboardButton("Перейти к проверке заказа ☑️", callback_data="st2*check_order")
-    exitbutton = InlineKeyboardButton("Выход", callback_data="qt")
+
     keyboard.add(frequency_weekly_bottom, frequency_2time_in_week_bottom, frequency_monthly_bottom, frequency_one_time_bottom)
     keyboard.add(next_bottom)
     keyboard.add(return_bottom)
-    keyboard.add(exitbutton)
+    keyboard.add(exit_button)
+
+    return keyboard
+
+def check_order_keyboard(caption):
+    # caption = caption.split("\n")
+    # caption = caption[0].split(" ")
+    # room_amount =
+    # print(caption)
+
+
+    keyboard = InlineKeyboardMarkup(row_width=1)
+
+    return_to_date = InlineKeyboardButton("Изменить Дату и Время заказа 🗓", callback_data="st2*date" )
+    return_to_extra_service = InlineKeyboardButton("Изменить дополнительные услуги", callback_data="st2*extra")
+    return_to_frequency = InlineKeyboardButton("Изменить регулярность уборки", callback_data="st2*fn")
+    save_bottom = InlineKeyboardButton("Перейти к заполнению адреса ☑", callback_data="st3*address")
+
+
+    keyboard.add(return_to_date,return_to_extra_service,return_to_frequency,save_bottom,exit_button)
 
     return keyboard
