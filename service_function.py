@@ -1,7 +1,7 @@
 import json
 from datetime import datetime, date, timedelta
 from settings import check_in_price, room_price, bathroom_price, check_in_time, room_time, bathroom_time, \
-    cleaning_frequency_and_discount_dict, extra_name_hour_cost_dict, empty_order
+    cleaning_frequency_and_discount_dict, extra_name_hour_cost_dict, empty_order, admins
 from translate_func import translate_month, translate_day_of_the_week
 
 
@@ -261,10 +261,8 @@ def from_caption_to_dict(caption):
                         order_dict["order_info"]["extra_price"] = int(temp[1][1:].replace("р", ""))
                         break
                     else:
-                        print(caption[j])
                         for x in extra_name_hour_cost_dict.values():
                             if x[0] in caption[j]:
-                                print(x[0], caption[j])
                                 order_dict["order_info"]["extra_service"].append(x)
                                 break
             if "Сумма скидки" in caption[i]:
@@ -291,7 +289,6 @@ def from_caption_to_dict(caption):
             temp = caption[i].split(":")
             order_dict["contact_info"]["tel"] = temp[1][1:]
         if "Email" in caption[i]:
-            print("email =")
             temp = caption[i].split(":")
             order_dict["contact_info"]["email"] = temp[1][1:]
 
@@ -307,3 +304,8 @@ def get_order_id_from_json():
         json.dump(buf, f, ensure_ascii=False, indent=4)
     return order_id
 
+def is_admin(user_id):
+    for x in admins:
+        if int(user_id) == x:
+            return True
+    return False

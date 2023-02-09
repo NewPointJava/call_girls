@@ -5,11 +5,12 @@ from telebot.types import InlineKeyboardButton
 from telegram_bot_calendar import DetailedTelegramCalendar, LSTEP
 from keyboards import price_1st_step, st2_keyboard, choose_time_keyboard, choose_frequency_keyboard, \
     st2_frequency_keyboard, extra_service_st1_keyboard, st2_extra_service_keyboard, check_order_keyboard, \
-    thanks_keyboard
+    thanks_keyboard, not_verified_slider_keyboard
 from next_step_handlers_func import cath_addres
 from service_function import cost_calculation_st1, order_card, edit_order_caption_date, edit_order_caption_time, \
-    edit_caption_extra_service, edit_caption_discount, from_caption_to_dict, get_order_id_from_json
-from settings import bot, room_price, bathroom_price, check_in_price, orders, not_verified_order
+    edit_caption_extra_service, edit_caption_discount, from_caption_to_dict, get_order_id_from_json, is_admin
+from settings import bot, room_price, bathroom_price, check_in_price, orders, not_verified_orders_list, admins, \
+    test_text
 
 
 @bot.message_handler(commands=['start'])
@@ -63,6 +64,13 @@ def new_order(message):
     bot.send_message(message.chat.id, f'1 - комната 1 - санузел = {room_price + bathroom_price + check_in_price}р', reply_markup=price_1st_step(1, 1))
 
 
+@bot.message_handler(commands=['not_verified'])
+def not_verified(message):
+    if is_admin(message.chat.id):
+        bot.send_message(message.chat.id, "Вот список не проверенных заказов", reply_markup=not_verified_slider_keyboard(not_verified_orders_list, 0))
+    else:
+        bot.send_message(message.chat.id, "Вы не являетесь админом. Воспользуйтесь командной /help", reply_markup=thanks_keyboard)
+
 @bot.callback_query_handler(func=DetailedTelegramCalendar.func())
 def cal(call):
     result, key, step = DetailedTelegramCalendar(min_date=(date.today() + timedelta(days=1)), max_date=date.today()+timedelta(days=60)).process(call.data)
@@ -75,7 +83,6 @@ def cal(call):
 def call(call):
     #print(call)
     print("call data = ", call.data)
-    print("message_id =", call.message.message_id)
     if call.data[:2] == "qt":
         bot.delete_message(call.message.chat.id, call.message.message_id)
 
@@ -152,11 +159,17 @@ def call(call):
 
     if call.data == "add":
         order_id = get_order_id_from_json()
-        not_verified_order.append([order_id, from_caption_to_dict(call.message.caption)])
+        order_dict = from_caption_to_dict(call.message.caption)
+        order_dict["user_id"] = call.message.chat.id
+        order_dict["user_name"] = call.from_user.username
+        not_verified_orders_list.append([order_id, order_dict])
         bot.delete_message(call.message.chat.id, call.message.message_id)
-        bot.send_message(call.message.chat.id, "Заказ Сформирован\nПроверяем ваш заказ и назначаем клинниров", reply_markup=thanks_keyboard)
-
-        print(not_verified_order)
+        bot.send_message(call.message.chat.id, "Заказ Сформирован\nID заказа - " + str(order_id) +"\n После проверки заказа и назначаем клинниров вам придёт уведомление", reply_markup=thanks_keyboard)
+        try:
+            for x in admins:
+                bot.send_message(x, "Поступил новый заказ. ID - " + str(order_id))
+        except:
+            print(not_verified_orders_list)
 
 
 

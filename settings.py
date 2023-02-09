@@ -6,8 +6,9 @@ bot = telebot.TeleBot(botToken)
 room_price = 14
 bathroom_price = 20
 check_in_price = 31
-admin_id = 694443138
-not_verified_order = []
+admins = [694443138]
+
+not_verified_orders_list = []
 room_time = 1
 bathroom_time = 0.5
 check_in_time = 1.5
@@ -46,7 +47,9 @@ empty_order = dict({
             "name": None,
             "tel": None,
             "email": None
-    }
+                    },
+    "user_id": None,
+    "user_name": None
 })
 
 test_text = """

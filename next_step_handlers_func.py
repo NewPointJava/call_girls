@@ -17,7 +17,7 @@ def cath_addres(message, text, m_id, order_id):
                          "Вы вышли из оформления заказа\n/new_order - для создания заказа\n/view_feedbacks - для просмотра отзывов\n/info - для дополнительной иформации о компании",
                          reply_markup=thanks_keyboard)
 
-    elif message.content_type == "text":
+    elif message.content_type == "text" and message.text[0] != "/":
         text = text.split("\n")
         text[0] = "Улица: " + message.text
         text.pop()
@@ -35,30 +35,21 @@ def cath_addres(message, text, m_id, order_id):
             m_id = m.message_id
         bot.register_next_step_handler(m, cath_house_number, text, m_id, order_id)
 
-    if message.content_type != "text" or message.content_type == "command" or message.text.replace(" ", "") == "":
+    if message.content_type != "text" or message.text[0] == "/":
         try:
             bot.delete_message(message.chat.id, message.message_id)
             bot.delete_message(message.chat.id, message.message_id - 1)
         except:
             pass
         m = bot.send_message(message.chat.id,
-                             "что-то пошло не так, попробуй снова написать и отправить улицу текстом\nДля выхода пришли '/stop")
+                             "Что-то пошло не так упс\nПопробуй снова написать и отправить улицу текстом\nДля выхода пришли '/stop")
         bot.register_next_step_handler(m, cath_addres, text, m_id, order_id)
 
 
 
 
 def cath_house_number(message, text, m_id, order_id):
-    if message.content_type != "text" and message.content_type != "command" or message.text.replace(" ", "") == "":
-        bot.delete_message(message.chat.id, message.message_id)
-        bot.delete_message(message.chat.id, message.message_id - 1)
-        m = bot.send_message(message.chat.id,
-                             "что-то пошло не так, попробуй снова написать и отправить улицу текстом\n " + \
-                             "Для выхода пришли '/stop\n")
-        bot.register_next_step_handler(m, cath_house_number, text, m_id, order_id)
-
-    elif message.text == "/stop":
-
+    if message.text == "/stop":
         try:
             bot.delete_message(message.chat.id, message.message_id)
             bot.delete_message(message.chat.id, message.message_id - 1)
@@ -72,7 +63,7 @@ def cath_house_number(message, text, m_id, order_id):
                          "/info - для дополнительной иформации о компании",
                          reply_markup=thanks_keyboard)
 
-    else:
+    elif message.content_type == "text" and message.text[0] != "/":
         text = text.split("\n")
         text[1] = "Дом: " + message.text
         text.pop()
@@ -90,18 +81,23 @@ def cath_house_number(message, text, m_id, order_id):
             m_id = m.message_id
         bot.register_next_step_handler(m, cath_flat_number, text, m_id, order_id)
 
-
-def cath_flat_number(message, text, m_id, order_id):
-    if message.content_type != "text" and message.content_type != "command" or message.text.replace(" ", "") == "":
+    if message.content_type != "text" or message.text[0] == "/":
         try:
             bot.delete_message(message.chat.id, message.message_id)
             bot.delete_message(message.chat.id, message.message_id - 1)
         except:
             pass
         m = bot.send_message(message.chat.id,
-                             "что-то пошло не так, попробуй снова написать и отправить улицу текстом\nДля выхода пришли '/stop")
-        bot.register_next_step_handler(m, cath_addres, text, m_id, order_id)
-    elif message.text == "/stop":
+                             "Что-то пошло не так упс\nПопробуй снова написать и отправить номер дома текстом\nДля выхода пришли '/stop")
+        bot.register_next_step_handler(m, cath_house_number, text, m_id, order_id)
+
+
+
+
+
+
+def cath_flat_number(message, text, m_id, order_id):
+    if message.text == "/stop":
         try:
             bot.delete_message(message.chat.id, message.message_id)
             bot.delete_message(message.chat.id, message.message_id - 1)
@@ -114,7 +110,8 @@ def cath_flat_number(message, text, m_id, order_id):
         bot.send_message(message.chat.id,
                          "Вы вышли из оформления заказа\n/new_order - для создания заказа\n/view_feedbacks - для просмотра отзывов\n/info - для дополнительной иформации о компании",
                          reply_markup=thanks_keyboard)
-    else:
+
+    elif message.content_type == "text" and message.text[0] != "/":
         text = text.split("\n")
         text[2] = "Квартира: " + message.text
 
@@ -138,18 +135,19 @@ def cath_flat_number(message, text, m_id, order_id):
             m_id = m.message_id
         bot.register_next_step_handler(m, contact_info, text, m_id, old_text, order_id)
 
-
-def contact_info(message, text, m_id, old_text, order_id):
-    if message.content_type != "text" and message.content_type != "command" or message.text.replace(" ", "") == "":
+    if message.content_type != "text" or message.text[0] == "/":
         try:
             bot.delete_message(message.chat.id, message.message_id)
             bot.delete_message(message.chat.id, message.message_id - 1)
         except:
             pass
         m = bot.send_message(message.chat.id,
-                             "что-то пошло не так, попробуй снова написать и отправить улицу текстом\nДля выхода пришли '/stop")
-        bot.register_next_step_handler(m, contact_info, text, m_id, old_text)
-    elif message.text == "/stop":
+                             "Что-то пошло не так упс\nПопробуй снова написать и отправить номер дома текстом\nДля выхода пришли '/stop")
+        bot.register_next_step_handler(m, cath_flat_number, text, m_id, order_id)
+
+
+def contact_info(message, text, m_id, old_text, order_id):
+    if message.text == "/stop":
         try:
             bot.delete_message(message.chat.id, message.message_id)
             bot.delete_message(message.chat.id, message.message_id - 1)
@@ -162,7 +160,6 @@ def contact_info(message, text, m_id, old_text, order_id):
         bot.send_message(message.chat.id,
                          "Вы вышли из оформления заказа\n/new_order - для создания заказа\n/view_feedbacks - для просмотра отзывов\n/info - для дополнительной иформации о компании",
                          reply_markup=thanks_keyboard)
-
     elif message.text == "/address":
         try:
             bot.delete_message(message.chat.id, message.message_id)
@@ -188,6 +185,7 @@ def contact_info(message, text, m_id, old_text, order_id):
             m = bot.send_message(message.chat.id, text)
             m_id = m.message_id
         bot.register_next_step_handler(m, cath_house_number, old_text, m_id, order_id)
+
     elif message.text == "/flat_number":
         try:
             bot.delete_message(message.chat.id, message.message_id)
@@ -200,6 +198,7 @@ def contact_info(message, text, m_id, old_text, order_id):
             m = bot.send_message(message.chat.id, text)
             m_id = m.message_id
         bot.register_next_step_handler(m, cath_flat_number, old_text, m_id, order_id)
+
     elif message.text == "/continue":
         text = text.split('\n')
         orders[message.chat.id] = orders[message.chat.id] + "\n\nАдрес\n" + text[0] + "\n" + text[1] + "\n" + text[2]
@@ -220,18 +219,29 @@ def contact_info(message, text, m_id, old_text, order_id):
         m_id = m.message_id
         bot.register_next_step_handler(m, cath_full_name, text, m_id, order_id)
 
-
-def cath_full_name(message, text, m_id, order_id):
-    if message.content_type != "text" and message.content_type != "command" or message.text.replace(" ", "") == "":
+    else:
         try:
             bot.delete_message(message.chat.id, message.message_id)
             bot.delete_message(message.chat.id, message.message_id - 1)
         except:
             pass
-        m = bot.send_message(message.chat.id,
-                             "что-то пошло не так, попробуй снова написать и отправить улицу текстом\nДля выхода пришли '/stop")
-        bot.register_next_step_handler(m, cath_full_name, text, m_id, order_id)
-    elif message.text == "/stop":
+
+        m = bot.send_message(message.chat.id, "Нажмите на синию надпись :)\nЕсли всё верно - ☑️нажмите /continue\n\n" +\
+                             "чтобы изменить адрес нажмите /address\n" +\
+                             "чтобы изменить номер дома нажмите /house_number\n" +\
+                             "чтобы изменить номер квартиры нажмите /flat_number\n\n" +\
+                             "чтобы выйти нажмите \stop")
+        bot.register_next_step_handler(m, contact_info, text, m_id, old_text, order_id)
+
+
+
+
+
+
+
+
+def cath_full_name(message, text, m_id, order_id):
+    if message.text == "/stop":
         try:
             bot.delete_message(message.chat.id, message.message_id)
             bot.delete_message(message.chat.id, message.message_id - 1)
@@ -244,7 +254,8 @@ def cath_full_name(message, text, m_id, order_id):
         bot.send_message(message.chat.id,
                          "Вы вышли из оформления заказа\n/new_order - для создания заказа\n/view_feedbacks - для просмотра отзывов\n/info - для дополнительной иформации о компании",
                          reply_markup=thanks_keyboard)
-    else:
+
+    elif message.content_type == "text" and message.text[0] != "/":
         text = text.split("\n")
         text[2] = "ФИО: " + message.text
         text.pop()
@@ -262,18 +273,19 @@ def cath_full_name(message, text, m_id, order_id):
             m_id = m.message_id
         bot.register_next_step_handler(m, cath_phone_number, text, m_id, order_id)
 
-
-def cath_phone_number(message, text, m_id, order_id):
-    if message.content_type != "text" and message.content_type != "command" or message.text.replace(" ", "") == "":
+    elif message.content_type != "text" or message.text[0] == "/":
         try:
             bot.delete_message(message.chat.id, message.message_id)
             bot.delete_message(message.chat.id, message.message_id - 1)
         except:
             pass
         m = bot.send_message(message.chat.id,
-                             "что-то пошло не так, попробуй снова написать и отправить улицу текстом\nДля выхода пришли '/stop")
-        bot.register_next_step_handler(m, cath_phone_number, text, m_id, order_id)
-    elif message.text == "/stop":
+                             "что-то пошло не так, попробуй снова написать и отправить ФИО текстом\nДля выхода пришли '/stop")
+        bot.register_next_step_handler(m, cath_full_name, text, m_id, order_id)
+
+
+def cath_phone_number(message, text, m_id, order_id):
+    if message.text == "/stop":
         try:
             bot.delete_message(message.chat.id, message.message_id)
             bot.delete_message(message.chat.id, message.message_id - 1)
@@ -286,7 +298,8 @@ def cath_phone_number(message, text, m_id, order_id):
         bot.send_message(message.chat.id,
                          "Вы вышли из оформления заказа\n/new_order - для создания заказа\n/view_feedbacks - для просмотра отзывов\n/info - для дополнительной иформации о компании",
                          reply_markup=thanks_keyboard)
-    else:
+
+    elif message.content_type == "text" and message.text[0] != "/":
         text = text.split("\n")
         text[3] = "Телефон: " + message.text
         text.pop()
@@ -304,18 +317,18 @@ def cath_phone_number(message, text, m_id, order_id):
             m_id = m.message_id
         bot.register_next_step_handler(m, cath_email, text, m_id, order_id)
 
-
-def cath_email(message, text, m_id, order_id):
-    if message.content_type != "text" and message.content_type != "command" or message.text.replace(" ", "") == "":
+    elif message.content_type != "text" or message.text[0] == "/":
         try:
             bot.delete_message(message.chat.id, message.message_id)
             bot.delete_message(message.chat.id, message.message_id - 1)
         except:
             pass
         m = bot.send_message(message.chat.id,
-                             "что-то пошло не так, попробуй снова написать и отправить улицу текстом\nДля выхода пришли '/stop")
+                             "что-то пошло не так, попробуй снова написать телефонный номер текстом\nДля выхода пришли '/stop")
         bot.register_next_step_handler(m, cath_phone_number, text, m_id, order_id)
-    elif message.text == "/stop":
+
+def cath_email(message, text, m_id, order_id):
+    if message.text == "/stop":
         try:
             bot.delete_message(message.chat.id, message.message_id)
             bot.delete_message(message.chat.id, message.message_id - 1)
@@ -328,7 +341,8 @@ def cath_email(message, text, m_id, order_id):
         bot.send_message(message.chat.id,
                          "Вы вышли из оформления заказа\n/new_order - для создания заказа\n/view_feedbacks - для просмотра отзывов\n/info - для дополнительной иформации о компании",
                          reply_markup=thanks_keyboard)
-    else:
+
+    elif message.content_type == "text" and message.text[0] != "/":
         text = text.split('\n')
         text.pop()
         text.pop(1)
@@ -347,3 +361,15 @@ def cath_email(message, text, m_id, order_id):
             bot.send_photo(message.chat.id,
                            "https://kartinkin.net/uploads/posts/2021-07/1626169458_2-kartinkin-com-p-uborka-art-art-krasivo-3.jpg",
                            orders[message.chat.id],reply_markup=send_order_to_admin())
+
+    elif message.content_type != "text" or message.text[0] == "/":
+        try:
+            bot.delete_message(message.chat.id, message.message_id)
+            bot.delete_message(message.chat.id, message.message_id - 1)
+        except:
+            pass
+        m = bot.send_message(message.chat.id,
+                             "что-то пошло не так, попробуй снова написать и отправить email текстом\nДля выхода пришли '/stop")
+        bot.register_next_step_handler(m, cath_email, text, m_id, order_id)
+
+
