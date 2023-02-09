@@ -76,3 +76,141 @@ test_text = """
 Телефон: 367831132
 Email: brest@dasas
 """
+
+not_verified_orders_list.append([1, dict({
+    "order_info": {
+            "room": 1,
+            "bathroom": 1,
+            "date": "Пт 10 Фев",
+            "time": "10:00",
+            "cleaning_time": 3,
+            "frequency": "1 раз или первый раз",
+            "standart_price": 10,
+            "extra_service": [],
+            "extra_price": None,
+            "discount_amount": None,
+            "payment": 10
+                    },
+    "address": {
+            "street": "111",
+            "house": "1111",
+            "flat": "11111"
+                    },
+    "contact_info": {
+            "name": "name1",
+            "tel": "tel1",
+            "email": "email1"
+                    },
+    "user_id": 1111111,
+    "user_name": "Serj_you"
+})])
+
+not_verified_orders_list.append([2, dict({
+    "order_info": {
+            "room": 2,
+            "bathroom": 2,
+            "date": "CБ 11 Фев",
+            "time": "11:00",
+            "cleaning_time": 4,
+            "frequency": "1 раз или первый раз",
+            "standart_price": 20,
+            "extra_service": [],
+            "extra_price": None,
+            "discount_amount": None,
+            "payment": 20
+                    },
+    "address": {
+            "street": "222",
+            "house": "2222",
+            "flat": "22222"
+                    },
+    "contact_info": {
+            "name": "name2",
+            "tel": "tel2",
+            "email": "email2"
+                    },
+    "user_id": 222222,
+    "user_name": "Serj_you"
+})])
+
+not_verified_orders_list.append([5, dict({
+    "order_info": {
+            "room": 2,
+            "bathroom": 2,
+            "date": "CБ 11 Фев",
+            "time": "11:00",
+            "cleaning_time": 4,
+            "frequency": "1 раз или первый раз",
+            "standart_price": 20,
+            "extra_service": [],
+            "extra_price": None,
+            "discount_amount": None,
+            "payment": 20
+                    },
+    "address": {
+            "street": "222",
+            "house": "2222",
+            "flat": "22222"
+                    },
+    "contact_info": {
+            "name": "name2",
+            "tel": "tel2",
+            "email": "email2"
+                    },
+    "user_id": 222222,
+    "user_name": "Serj_you"
+})])
+not_verified_orders_list.append([3, dict({
+    "order_info": {
+            "room": 2,
+            "bathroom": 2,
+            "date": "CБ 11 Фев",
+            "time": "11:00",
+            "cleaning_time": 4,
+            "frequency": "1 раз или первый раз",
+            "standart_price": 20,
+            "extra_service": [],
+            "extra_price": None,
+            "discount_amount": None,
+            "payment": 20
+                    },
+    "address": {
+            "street": "222",
+            "house": "2222",
+            "flat": "22222"
+                    },
+    "contact_info": {
+            "name": "name2",
+            "tel": "tel2",
+            "email": "email2"
+                    },
+    "user_id": 222222,
+    "user_name": "Serj_you"
+})])
+not_verified_orders_list.append([4, dict({
+    "order_info": {
+            "room": 2,
+            "bathroom": 2,
+            "date": "CБ 11 Фев",
+            "time": "11:00",
+            "cleaning_time": 4,
+            "frequency": "1 раз или первый раз",
+            "standart_price": 20,
+            "extra_service": [],
+            "extra_price": None,
+            "discount_amount": None,
+            "payment": 20
+                    },
+    "address": {
+            "street": "222",
+            "house": "2222",
+            "flat": "22222"
+                    },
+    "contact_info": {
+            "name": "name2",
+            "tel": "tel2",
+            "email": "email2"
+                    },
+    "user_id": 222222,
+    "user_name": "Serj_you"
+})])

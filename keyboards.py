@@ -163,7 +163,7 @@ def send_order_to_admin():
 def not_verified_slider_keyboard(not_verified_orders_list, page_number):
     keyboard = InlineKeyboardMarkup(row_width=3)
 
-    backbutton = InlineKeyboardButton(text="предыдущие", callback_data="nt_vr*" + str(page_number - 1))
+    backbutton = InlineKeyboardButton(text="предыдущие", callback_data="nt_ver*" + str(page_number - 1))
     nextbutton = InlineKeyboardButton(text="следующие", callback_data="nt_ver*" + str(page_number + 1))
     exitbutton = InlineKeyboardButton(text="выход", callback_data="qt")
     if len(not_verified_orders_list) != 0 :
@@ -172,17 +172,17 @@ def not_verified_slider_keyboard(not_verified_orders_list, page_number):
                            not_verified_orders_list]
             keyboard.add(*button_list)
         elif 9 * (page_number + 1) < len(not_verified_orders_list) and 9 * page_number <= 0:
-            button_list = [InlineKeyboardButton(text=x[1]["order_info"]["date"], callback_data="nt_ver:" + x[0]) for x in
+            button_list = [InlineKeyboardButton(text=x[1]["order_info"]["date"], callback_data="nt_ver:" + str(x[0])) for x in
                            not_verified_orders_list[page_number * 9:(page_number + 1) * 9]]
             keyboard.add(*button_list)
             keyboard.add(nextbutton)
         elif 9 * (page_number + 1) >= len(not_verified_orders_list):
-            button_list = [InlineKeyboardButton(text=x[1]["order_info"]["date"], callback_data="nt_ver:" + x[0]) for x in
+            button_list = [InlineKeyboardButton(text=x[1]["order_info"]["date"], callback_data="nt_ver:" + str(x[0])) for x in
                            not_verified_orders_list[page_number * 9:(page_number + 1) * 9]]
             keyboard.add(*button_list)
             keyboard.add(backbutton)
         else:
-            button_list = [InlineKeyboardButton(text=x[1]["order_info"]["date"], callback_data="nt_ver:" + x[0]) for x in
+            button_list = [InlineKeyboardButton(text=x[1]["order_info"]["date"], callback_data="nt_ver:" + str(x[0])) for x in
                            not_verified_orders_list[page_number * 9:(page_number + 1) * 9]]
             keyboard.add(*button_list)
             keyboard.add(backbutton, nextbutton)

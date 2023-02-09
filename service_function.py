@@ -192,6 +192,8 @@ def edit_caption_discount(caption, discount_percent):
                     caption[-1] = "К оплате: " + str(extra_price) + "р"
                 else:
                     caption[-1] = "К оплате: " + str(standart_price) + "р"
+            if "Регулярность" in caption[i]:
+                caption[i] = "Регулярность: " + "1 раз или первый раз"
 
     else:
         k = 0
@@ -204,6 +206,15 @@ def edit_caption_discount(caption, discount_percent):
                     discount = round(standart_price*(discount_percent/100), 2)
 
                 caption[i] = "Сумма скидки за регулярность: " + str(discount) + "р"
+            if "Регулярность" in caption[i]:
+                caption[i] = "Регулярность: "
+                # Сорри за костыль
+                if discount_percent == 15:
+                    caption[i] += "Раз в неделю"
+                if discount_percent == 10:
+                    caption[i] += "Раз в две недели"
+                if discount_percent == 7:
+                    caption[i] += "Раз в месяц"
 
         if k == 0:
             if extra_price != 0:
@@ -304,8 +315,51 @@ def get_order_id_from_json():
         json.dump(buf, f, ensure_ascii=False, indent=4)
     return order_id
 
+
 def is_admin(user_id):
     for x in admins:
         if int(user_id) == x:
             return True
     return False
+
+
+def get_text_from_dict_to_text(order_dict):
+    text = ""
+    ending_room = ""
+    ending_bathroom = ""
+
+    if order_dict["order_info"]["room"] <= 1:
+        ending_room = "жилой"
+    elif 1 < order_dict["order_info"]["room"]:
+        ending_room = "жилыми"
+
+    if order_dict["order_info"]["bathroom"] <= 1:
+        ending_bathroom = "ванной"
+    elif 1 < order_dict["order_info"]["bathroom"]:
+        ending_bathroom = "ванными"
+
+    text += "Уборка квартиры с " + str(order_dict["order_info"]["room"]) + " " + ending_room + " и " + str(order_dict["order_info"]["bathroom"]) + " " + ending_bathroom + " комнатами"
+    text += "\n\nДата уборки: " + order_dict["order_info"]["date"] + " " + order_dict["order_info"]["time"]
+    text += "\nВремя уборки: ~ " + str(order_dict["order_info"]["cleaning_time"]) + " ч."
+    text += "\nРегулярность: " + order_dict["order_info"]["frequency"]
+    text += "\nСтандарнатная стоимость: " + str(order_dict["order_info"]["standart_price"]) + "р"
+    if len(order_dict["order_info"]["extra_service"]) != 0:
+        text += "\nДополнительные услуги"
+        for x in (order_dict["order_info"]["extra_service"]):
+            text += "\n" + x[0] + ": " + str(x[2])
+        text += "\nСтоимость уборки с дополнительными услугами: " + str(order_dict["order_info"]["extra_price"]) +"р"
+    if order_dict["order_info"]["discount_amount"] != None:
+        text += "\nСумма скидки за регулярность: " + str(order_dict["order_info"]["discount_amount"]) + "р"
+    text += "\nК оплате: " + str(order_dict["order_info"]["payment"]) + "р"
+
+    text += "\n\nАдрес"
+    text += "\nУлица: " + order_dict["address"]["street"]
+    text += "\nДом: " + order_dict["address"]["house"]
+    text += "\nКвартира: " + order_dict["address"]["flat"]
+
+    text += "\n\nКонтактная информация"
+    text += "\nФИО: " + order_dict["contact_info"]["name"]
+    text += "\nТелефон: " + order_dict["contact_info"]["tel"]
+    text += "\nEmail: " + order_dict["contact_info"]["email"]
+
+    return text

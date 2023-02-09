@@ -8,7 +8,8 @@ from keyboards import price_1st_step, st2_keyboard, choose_time_keyboard, choose
     thanks_keyboard, not_verified_slider_keyboard
 from next_step_handlers_func import cath_addres
 from service_function import cost_calculation_st1, order_card, edit_order_caption_date, edit_order_caption_time, \
-    edit_caption_extra_service, edit_caption_discount, from_caption_to_dict, get_order_id_from_json, is_admin
+    edit_caption_extra_service, edit_caption_discount, from_caption_to_dict, get_order_id_from_json, is_admin, \
+    get_text_from_dict_to_text
 from settings import bot, room_price, bathroom_price, check_in_price, orders, not_verified_orders_list, admins, \
     test_text
 
@@ -78,7 +79,6 @@ def cal(call):
         bot.edit_message_reply_markup(call.message.chat.id, call.message.message_id,reply_markup=key)
     elif result:
         bot.edit_message_caption(edit_order_caption_date(call.message.caption, result), call.message.chat.id, call.message.message_id, reply_markup=choose_time_keyboard())
-
 @bot.callback_query_handler(func=lambda call: True)
 def call(call):
     #print(call)
@@ -149,7 +149,6 @@ def call(call):
     if call.data[:3] == "st3":
         if call.data[4:] == "address":
             order_id = call.message.message_id
-            print("!!!!!", order_id)
             orders[call.message.chat.id] = call.message.caption
             bot.edit_message_reply_markup(call.message.chat.id, call.message.message_id)
             text = 'Улица:\nДом:\nКвартира:\n\nОтправьте сообщением название улицы ⬇️'
@@ -170,6 +169,25 @@ def call(call):
                 bot.send_message(x, "Поступил новый заказ. ID - " + str(order_id))
         except:
             print(not_verified_orders_list)
+
+    if call.data[:6] == "nt_ver":
+        if call.data[6] == "*":
+            call.data = call.data.split("*")
+            number_page = int(call.data[1])
+            bot.edit_message_reply_markup(call.message.chat.id, call.message.message_id, reply_markup= not_verified_slider_keyboard(not_verified_orders_list, number_page))
+
+        elif call.data[6] == ":":
+            call.data = call.data.split(":")
+            order_id = int(call.data[1])
+            for x in not_verified_orders_list:
+                if x[0] == order_id:
+                    text = get_text_from_dict_to_text(x[1])
+                    #bot.delete_message(call.message.chat.id, call.message.message_id)
+                    bot.send_photo(call.message.chat.id, "https://i.artfile.ru/1920x1200_645851_[www.ArtFile.ru].jpg", text)
+
+
+
+
 
 
 
