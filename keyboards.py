@@ -137,12 +137,8 @@ def choose_frequency_keyboard():
 
     return keyboard
 
-def check_order_keyboard(caption):
-    # caption = caption.split("\n")
-    # caption = caption[0].split(" ")
-    # room_amount =
-    # print(caption)
 
+def check_order_keyboard(caption):
 
     keyboard = InlineKeyboardMarkup(row_width=1)
 
@@ -154,4 +150,11 @@ def check_order_keyboard(caption):
 
     keyboard.add(return_to_date,return_to_extra_service,return_to_frequency,save_bottom,exit_button)
 
+    return keyboard
+
+
+def send_order_to_admin():
+    keyboard = InlineKeyboardMarkup(row_width=1)
+
+    keyboard.add(InlineKeyboardButton("Заказать уборку ☑️", callback_data="add"), InlineKeyboardButton("Удалить заказ",callback_data="qt"))
     return keyboard

@@ -1,6 +1,7 @@
+import json
 from datetime import datetime, date, timedelta
 from settings import check_in_price, room_price, bathroom_price, check_in_time, room_time, bathroom_time, \
-    cleaning_frequency_and_discount_dict, extra_name_hour_cost_dict
+    cleaning_frequency_and_discount_dict, extra_name_hour_cost_dict, empty_order
 from translate_func import translate_month, translate_day_of_the_week
 
 
@@ -217,8 +218,92 @@ def edit_caption_discount(caption, discount_percent):
         else:
             caption[-1] = "К оплате: " + str(standart_price-discount) + "р"
 
-
     new_caption = "\n".join(caption)
 
     return new_caption
+
+
+def from_caption_to_dict(caption):
+    caption = caption.split("\n")
+    order_dict = empty_order
+    pos = 0
+    for i in range(len(caption)):
+        if "Адрес" in caption[i]:
+            pos = i
+            break
+        else:
+            if "Уборка квартиры" in caption[i]:
+                temp = caption[i].split(" ")
+                order_dict["order_info"]["room"] = int(temp[3])
+                order_dict["order_info"]["bathroom"] = int(temp[6])
+                pass
+            if "Дата уборки" in caption[i]:
+                temp = caption[i].split(" ")
+                order_dict["order_info"]["date"] = temp[2] + " " + temp[3] + " " + temp[4]
+                order_dict["order_info"]["time"] = temp[5]
+                pass
+            if "Время уборки" in caption[i]:
+                temp = caption[i].split(" ")
+                order_dict["order_info"]["cleaning_time"] = float(temp[3])
+                pass
+            if "Регулярность" in caption[i]:
+                temp = caption[i].split(":")
+                order_dict["order_info"]["frequency"] = temp[1][1:]
+                pass
+            if "Стандарнатная стоимость" in caption[i]:
+                temp = caption[i].split(" ")
+                order_dict["order_info"]["standart_price"] = int(temp[2].replace("р",""))
+                pass
+            if "Дополнительные услуги" in caption[i]:
+                for j in range(i+1,len(caption)-1):
+                    if "Стоимость уборки с дополнительными" in caption[j]:
+                        temp = caption[j].split(":")
+                        order_dict["order_info"]["extra_price"] = int(temp[1][1:].replace("р", ""))
+                        break
+                    else:
+                        print(caption[j])
+                        for x in extra_name_hour_cost_dict.values():
+                            if x[0] in caption[j]:
+                                print(x[0], caption[j])
+                                order_dict["order_info"]["extra_service"].append(x)
+                                break
+            if "Сумма скидки" in caption[i]:
+                temp = caption[i].split(":")
+                order_dict["order_info"]["discount_amount"] = float(temp[1][1:].replace("р", ""))
+            if "К оплате" in caption[i]:
+                temp = caption[i].split(":")
+                order_dict["order_info"]["payment"] = float(temp[1][1:].replace("р", ""))
+
+    for i in range(pos+1, len(caption)):
+        if "Улица" in caption[i]:
+            temp = caption[i].split(":")
+            order_dict["address"]["street"] = temp[1][1:]
+        if "Дом" in caption[i]:
+            temp = caption[i].split(":")
+            order_dict["address"]["house"] = temp[1][1:]
+        if "Квартира" in caption[i]:
+            temp = caption[i].split(":")
+            order_dict["address"]["flat"] = temp[1][1:]
+        if "ФИО" in caption[i]:
+            temp = caption[i].split(":")
+            order_dict["contact_info"]["name"] = temp[1][1:]
+        if "Телефон" in caption[i]:
+            temp = caption[i].split(":")
+            order_dict["contact_info"]["tel"] = temp[1][1:]
+        if "Email" in caption[i]:
+            print("email =")
+            temp = caption[i].split(":")
+            order_dict["contact_info"]["email"] = temp[1][1:]
+
+    return order_dict
+
+def get_order_id_from_json():
+    f = open("settings.json", "r", encoding="utf-8")
+    buf = json.loads(f.read())
+    f.close()
+    order_id = buf["order_id"] + 1
+    buf["order_id"] = order_id
+    with open('settings.json', 'w', encoding='utf-8') as f:
+        json.dump(buf, f, ensure_ascii=False, indent=4)
+    return order_id
 

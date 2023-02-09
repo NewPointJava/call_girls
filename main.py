@@ -8,8 +8,8 @@ from keyboards import price_1st_step, st2_keyboard, choose_time_keyboard, choose
     thanks_keyboard
 from next_step_handlers_func import cath_addres
 from service_function import cost_calculation_st1, order_card, edit_order_caption_date, edit_order_caption_time, \
-    edit_caption_extra_service, edit_caption_discount
-from settings import bot, room_price, bathroom_price, check_in_price,orders
+    edit_caption_extra_service, edit_caption_discount, from_caption_to_dict, get_order_id_from_json
+from settings import bot, room_price, bathroom_price, check_in_price, orders, not_verified_order
 
 
 @bot.message_handler(commands=['start'])
@@ -149,6 +149,15 @@ def call(call):
             m = bot.send_message(call.message.chat.id, text)
             m_id = m.message_id
             bot.register_next_step_handler(m, cath_addres, text, m_id, order_id)
+
+    if call.data == "add":
+        order_id = get_order_id_from_json()
+        not_verified_order.append([order_id, from_caption_to_dict(call.message.caption)])
+        bot.delete_message(call.message.chat.id, call.message.message_id)
+        bot.send_message(call.message.chat.id, "Заказ Сформирован\nПроверяем ваш заказ и назначаем клинниров", reply_markup=thanks_keyboard)
+
+        print(not_verified_order)
+
 
 
 print("Ready")
