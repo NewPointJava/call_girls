@@ -1,3 +1,4 @@
+import json
 import time
 from datetime import date, timedelta
 
@@ -5,22 +6,27 @@ from telebot.types import InlineKeyboardButton
 from telegram_bot_calendar import DetailedTelegramCalendar, LSTEP
 from keyboards import price_1st_step, st2_keyboard, choose_time_keyboard, choose_frequency_keyboard, \
     st2_frequency_keyboard, extra_service_st1_keyboard, st2_extra_service_keyboard, check_order_keyboard, \
-    thanks_keyboard, not_verified_slider_keyboard
+    thanks_keyboard, not_verified_slider_keyboard, admin_check_order_keyboard, feedbacks_slider_keyboard, \
+    choose_cleaner_keyboard
 from next_step_handlers_func import cath_addres
 from service_function import cost_calculation_st1, order_card, edit_order_caption_date, edit_order_caption_time, \
     edit_caption_extra_service, edit_caption_discount, from_caption_to_dict, get_order_id_from_json, is_admin, \
-    get_text_from_dict_to_text
+    get_text_from_order_dict, get_text_from_feedback_dict, is_cleaner, open_json_order_by_id
 from settings import bot, room_price, bathroom_price, check_in_price, orders, not_verified_orders_list, admins, \
-    test_text
+    feedbacks
 
 
 @bot.message_handler(commands=['start'])
 def start(message):
-    text = 'Улица:\nДом:\nКвартира:\n\nОтправьте сообщением название улицы ⬇️'
-    m = bot.send_message(message.chat.id, text)
-    m_id = m.message_id
-    bot.register_next_step_handler(m, cath_addres, text, m_id)
-
+    print(message.chat.id)
+    if is_cleaner(message.chat.id):
+        text = open_json_order_by_id(27)
+        if text != "":
+            bot.send_message(message.chat.id, text, reply_markup=thanks_keyboard)
+        else:
+            bot.send_message(message.chat.id, "Данный заказ не найден", reply_markup=thanks_keyboard)
+    else:
+        bot.send_message(message.chat.id, "Вы не являтесь клинером компании.\nЧтобы узнать о возможностях бота напишите   /help ", reply_markup=thanks_keyboard)
 
 @bot.message_handler(commands=['help'])
 def help_user(message):
@@ -38,6 +44,7 @@ def help_user(message):
             f'Используйте команду /ad_help'
 
     bot.send_message(message.chat.id, text)
+
 
 @bot.message_handler(commands=['info'])
 def info(message):
@@ -72,6 +79,13 @@ def not_verified(message):
     else:
         bot.send_message(message.chat.id, "Вы не являетесь админом. Воспользуйтесь командной /help", reply_markup=thanks_keyboard)
 
+
+@bot.message_handler(commands=['view_feedbacks'])
+def view_feedback(message):
+    text = get_text_from_feedback_dict(0)
+    bot.send_message(message.chat.id, text, reply_markup=feedbacks_slider_keyboard(0))
+
+
 @bot.callback_query_handler(func=DetailedTelegramCalendar.func())
 def cal(call):
     result, key, step = DetailedTelegramCalendar(min_date=(date.today() + timedelta(days=1)), max_date=date.today()+timedelta(days=60)).process(call.data)
@@ -103,8 +117,7 @@ def call(call):
 
         if call.data[3] =="$":
             bot.delete_message(call.message.chat.id, call.message.message_id)
-            time_order = time.asctime()
-            caption, room_amount, bathroom_amount = order_card(call.data, time_order, 4)
+            caption, room_amount, bathroom_amount = order_card(call.data, 4)
             bot.send_photo(call.message.chat.id, "https://kartinkin.net/uploads/posts/2021-07/1626169458_2-kartinkin-com-p-uborka-art-art-krasivo-3.jpg", caption, reply_markup=st2_keyboard(room_amount,bathroom_amount))
 
     if call.data[:3] == "st2":
@@ -168,22 +181,61 @@ def call(call):
             for x in admins:
                 bot.send_message(x, "Поступил новый заказ. ID - " + str(order_id))
         except:
-            print(not_verified_orders_list)
+            print("Сформирован заказ - ID = " + order_id + "\n", order_dict)
+
+    if call.data[:4] == "save":
+        #Тестово! Потом переделать, после того как мы назначаем клинера в ручную
+        order_id = call.data.split("*")
+        order_id = int(order_id[1])
+        print(order_id)
+        for x in not_verified_orders_list:
+            if x[0] == order_id:
+                print("зашло в if")
+                with open('orders/' + str(order_id) + ".json", 'w', encoding='utf-8') as f:
+                    json.dump(x[1], f, ensure_ascii=False, indent=4)
+                    f.close()
+                    break
+
+
+    if call.data == "ntvr":
+        bot.delete_message(call.message.chat.id,call.message.message_id)
+        bot.send_message(call.message.chat.id, "Вот список не проверенных заказов", reply_markup=not_verified_slider_keyboard(not_verified_orders_list, 0))
 
     if call.data[:6] == "nt_ver":
         if call.data[6] == "*":
-            call.data = call.data.split("*")
-            number_page = int(call.data[1])
+            number_page = call.data.split("*")
+            number_page = int(number_page[1])
             bot.edit_message_reply_markup(call.message.chat.id, call.message.message_id, reply_markup= not_verified_slider_keyboard(not_verified_orders_list, number_page))
 
         elif call.data[6] == ":":
-            call.data = call.data.split(":")
-            order_id = int(call.data[1])
+            order_id = call.data.split(":")
+            order_id = int(order_id[1])
             for x in not_verified_orders_list:
                 if x[0] == order_id:
-                    text = get_text_from_dict_to_text(x[1])
-                    #bot.delete_message(call.message.chat.id, call.message.message_id)
-                    bot.send_photo(call.message.chat.id, "https://i.artfile.ru/1920x1200_645851_[www.ArtFile.ru].jpg", text)
+                    text = get_text_from_order_dict(x[1])
+                    bot.delete_message(call.message.chat.id, call.message.message_id)
+                    bot.send_photo(call.message.chat.id, "https://i.artfile.ru/1920x1200_645851_[www.ArtFile.ru].jpg", text, reply_markup= admin_check_order_keyboard(order_id))
+
+        elif call.data[6] == "-":
+            order_id = call.data.split("-")
+            order_id = int(order_id[1])
+            bot.delete_message(call.message.chat.id, call.message.message_id)
+            for i in range(len(not_verified_orders_list)):
+                if not_verified_orders_list[i][0] == order_id:
+                    not_verified_orders_list.pop(i)
+                    break
+            bot.send_message(call.message.chat.id, "Заказ ID=" + str(order_id) + " удалён. Выберите следующий", reply_markup=not_verified_slider_keyboard(not_verified_orders_list, 0))
+
+    if call.data[:2] == "fb":
+        feedback_number = call.data.split("*")
+        feedback_number = int(feedback_number[1])
+        text = get_text_from_feedback_dict(feedback_number)
+        bot.edit_message_text(text, call.message.chat.id, call.message.message_id, reply_markup=feedbacks_slider_keyboard(feedback_number))
+
+    if call.data[:5] == "ml_sh":
+        order_id = call.data.split(":")
+        order_id = int(order_id[1])
+        bot.edit_message_reply_markup(call.message.chat.id, call.message.message_id, reply_markup=choose_cleaner_keyboard(order_id))
 
 
 

@@ -7,8 +7,10 @@ room_price = 14
 bathroom_price = 20
 check_in_price = 31
 admins = [694443138]
+cleaners = [694443138, 444908023]
 
 not_verified_orders_list = []
+feedbacks = []
 room_time = 1
 bathroom_time = 0.5
 check_in_time = 1.5
@@ -23,6 +25,18 @@ extra_name_hour_cost_dict = dict({
     "ds": ["Помоем посуду", 0.5, 10],
     "mv": ["Внутри микроволновки", 0.5, 20]
 })
+
+empty_day = []
+for i in range(24):
+    empty_day.append(True)
+
+
+
+
+
+
+
+
 
 empty_order = dict({
     "order_info": {
@@ -49,33 +63,16 @@ empty_order = dict({
             "email": None
                     },
     "user_id": None,
-    "user_name": None
+    "user_name": None,
+    "is_created_by_admin": False
 })
 
-test_text = """
-Уборка квартиры с 1 жилой и 1 ванной комнатами
-
-Дата уборки: Вс 19 Фев 14:00
-Время уборки: ~ 4.0 ч.
-Регулярность: 1 раз или первый раз
-Стандарнатная стоимость: 65р
-Дополнительные услуги
-Помоем посуду: 10
-Внутри микроволновки: 20
-Стоимость уборки с дополнительными услугами: 95р
-Сумма скидки за регулярность: 9.5р
-К оплате: 85.5р
-
-Адрес
-Улица: Минск
-Дом: 35
-Квартира: 55
-
-Контактная информация
-ФИО: Козлов Сергей
-Телефон: 367831132
-Email: brest@dasas
-"""
+empty_feedback = dict({
+        "text": None,
+        "date": None,
+        "cleaner": None,
+        "order_id": None
+})
 
 not_verified_orders_list.append([1, dict({
     "order_info": {
@@ -109,7 +106,7 @@ not_verified_orders_list.append([2, dict({
     "order_info": {
             "room": 2,
             "bathroom": 2,
-            "date": "CБ 11 Фев",
+            "date": "CБ 99 Фев",
             "time": "11:00",
             "cleaning_time": 4,
             "frequency": "1 раз или первый раз",
@@ -130,7 +127,7 @@ not_verified_orders_list.append([2, dict({
             "email": "email2"
                     },
     "user_id": 222222,
-    "user_name": "Serj_you"
+    "user_name": None
 })])
 
 not_verified_orders_list.append([5, dict({
@@ -214,3 +211,46 @@ not_verified_orders_list.append([4, dict({
     "user_id": 222222,
     "user_name": "Serj_you"
 })])
+
+feedbacks.append(dict({
+    "name": "name-1",
+    "text": "1-ый отзыв",
+    "date": "1-ая дата",
+    "cleaner": "1-ый клеанер",
+    "order_id": 1
+}))
+
+
+
+feedbacks.append(dict({
+    "name": "name-2",
+    "text": "2-ый отзыв",
+    "date": "2-ая дата",
+    "cleaner": "2-ый клеанер",
+    "order_id": 2
+}))
+
+feedbacks.append(dict({
+    "name": "name-3",
+    "text": "3-ый отзыв",
+    "date": "3-ая дата",
+    "cleaner": "3-ый клеанер",
+    "order_id": 3
+}))
+
+feedbacks.append(dict({
+    "name": "name-4",
+    "text": "4-ый отзыв",
+    "date": "4-ая дата",
+    "cleaner": "4-ый клеанер",
+    "order_id": 4
+}))
+
+feedbacks.append(dict({
+    "name": "name-5",
+    "text": "5-ый отзыв",
+    "date": "5-ая дата",
+    "cleaner": "company",
+    "order_id": 5
+}))
+

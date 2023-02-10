@@ -1,7 +1,7 @@
 import json
 from datetime import datetime, date, timedelta
 from settings import check_in_price, room_price, bathroom_price, check_in_time, room_time, bathroom_time, \
-    cleaning_frequency_and_discount_dict, extra_name_hour_cost_dict, empty_order, admins
+    cleaning_frequency_and_discount_dict, extra_name_hour_cost_dict, empty_order, admins, feedbacks, cleaners
 from translate_func import translate_month, translate_day_of_the_week
 
 
@@ -33,16 +33,17 @@ def cost_calculation_st1(call_data):
     return new_text, room_amount, bathroom_amount
 
 
-def order_card(call_data, time_order, cleaning_frequency_int):
+def order_card(call_data, cleaning_frequency_int):
     call_data = call_data.split("$")
     call_data = call_data[1].split("*")
     room_amount = int(call_data[0])
     bathroom_amount = int(call_data[1])
-
-    time_order = time_order.split(" ")
-    time_order[0] = translate_day_of_the_week(time_order[0])
-    time_order[1] = translate_month(time_order[1])
-    time_order = time_order[0] + " " + str(int(time_order[3]) + 1) + " " + time_order[1] + " 08:00"
+    delta = date.today() + timedelta(days=1)
+    delta = delta.strftime("%a:%d:%b")
+    delta = delta.split(":")
+    delta[0] = translate_day_of_the_week(delta[0])
+    delta[2] = translate_month(delta[2])
+    time_order = delta[0] + " " + delta[1] + " " + delta[2] + " 08:00"
 
     if room_amount <= 1:
         ending_room = "жилой"
@@ -305,6 +306,7 @@ def from_caption_to_dict(caption):
 
     return order_dict
 
+
 def get_order_id_from_json():
     f = open("settings.json", "r", encoding="utf-8")
     buf = json.loads(f.read())
@@ -323,7 +325,14 @@ def is_admin(user_id):
     return False
 
 
-def get_text_from_dict_to_text(order_dict):
+def is_cleaner(user_id):
+    for x in cleaners:
+        if int(user_id) == x:
+            return True
+    return False
+
+
+def get_text_from_order_dict(order_dict):
     text = ""
     ending_room = ""
     ending_bathroom = ""
@@ -348,7 +357,7 @@ def get_text_from_dict_to_text(order_dict):
         for x in (order_dict["order_info"]["extra_service"]):
             text += "\n" + x[0] + ": " + str(x[2])
         text += "\nСтоимость уборки с дополнительными услугами: " + str(order_dict["order_info"]["extra_price"]) +"р"
-    if order_dict["order_info"]["discount_amount"] != None:
+    if order_dict["order_info"]["discount_amount"] is not None:
         text += "\nСумма скидки за регулярность: " + str(order_dict["order_info"]["discount_amount"]) + "р"
     text += "\nК оплате: " + str(order_dict["order_info"]["payment"]) + "р"
 
@@ -361,5 +370,36 @@ def get_text_from_dict_to_text(order_dict):
     text += "\nФИО: " + order_dict["contact_info"]["name"]
     text += "\nТелефон: " + order_dict["contact_info"]["tel"]
     text += "\nEmail: " + order_dict["contact_info"]["email"]
+    if order_dict["user_name"] is not None:
+        text += "\n\nАккаунт @" + str(order_dict["user_name"])
 
     return text
+
+
+def get_text_from_feedback_dict(feedback_number):
+    feedback = feedbacks[feedback_number]
+    text = ""
+    text += feedback["name"]
+    text += "\n" + feedback["text"]
+    text += "\n\nУборка выполнена " + feedback["date"]
+    if feedback["cleaner"] != "company":
+        text += "\nСпециалистом " + feedback["cleaner"]
+    else:
+        text +="\nКомпанией КлинниБогини"
+
+    return text
+
+
+
+def open_json_order_by_id(order_id):
+    try:
+        f = open("orders/" + str(order_id) + ".json", "r", encoding="utf-8")
+        order_dict = json.loads(f.read())
+        f.close()
+    except:
+        return ""
+
+    text = get_text_from_order_dict(order_dict)
+    return text
+
+

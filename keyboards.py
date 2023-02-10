@@ -1,6 +1,6 @@
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 
-from settings import extra_name_hour_cost_dict
+from settings import extra_name_hour_cost_dict, feedbacks, cleaners
 
 exit_button = InlineKeyboardButton("Выход ❌", callback_data="qt")
 thanks_buttom = InlineKeyboardButton("Cпасибо ☑", callback_data="qt")
@@ -190,3 +190,51 @@ def not_verified_slider_keyboard(not_verified_orders_list, page_number):
     keyboard.add(exitbutton)
     return keyboard
 
+
+def admin_check_order_keyboard(order_id):
+
+    keyboard = InlineKeyboardMarkup(row_width=1)
+
+    avto_search_bottom = InlineKeyboardButton("Автоматический поиск клинера 🤖", callback_data="av_sh:" + str(order_id))
+    manual_search_bottom = InlineKeyboardButton("Ручной поиск клинера 🕹", callback_data="ml_sh:" + str(order_id))
+    del_order_bottom = InlineKeyboardButton("Удалить заказ ⛔️", callback_data="nt_ver-" + str(order_id))
+    return_bottom = InlineKeyboardButton("Вернуться назад к списку 🔙", callback_data="ntvr")
+    save_bottom = InlineKeyboardButton("Сохранить Test", callback_data="save*" + str(order_id))
+
+    keyboard.add(avto_search_bottom, manual_search_bottom, del_order_bottom, return_bottom, exit_button, save_bottom)
+
+    return keyboard
+
+
+def feedbacks_slider_keyboard(feedback_number):
+
+    keyboard = InlineKeyboardMarkup(row_width=3)
+    next_number = feedback_number+1
+    back_number = feedback_number-1
+
+    if back_number == -1:
+        back_number = len(feedbacks)-1
+    if next_number == len(feedbacks):
+        next_number = 0
+
+    next_bottom = InlineKeyboardButton("Следующий ➡️", callback_data="fb*" + str(next_number))
+    back_bottom = InlineKeyboardButton("⬅️Предыдущий", callback_data="fb*" + str(back_number))
+
+    if len(feedbacks) <=1:
+        keyboard.add(exit_button)
+    else:
+        keyboard.add(back_bottom, exit_button, next_bottom)
+
+    return keyboard
+
+
+def choose_cleaner_keyboard(order_id):
+    keyboard = InlineKeyboardMarkup()
+    button_list = [InlineKeyboardButton(text=str(x), callback_data="cl:"+ str(x) + "*" + str(order_id))for x in cleaners]
+    back_bottom = InlineKeyboardButton("Вернуться назад 🔙", callback_data="nt_ver:" + str(order_id))
+
+    keyboard.add(*button_list)
+    keyboard.add(back_bottom)
+    keyboard.add(exit_button)
+
+    return keyboard

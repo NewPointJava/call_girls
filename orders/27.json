@@ -1,0 +1,29 @@
+{
+    "order_info": {
+        "room": 1,
+        "bathroom": 1,
+        "date": "Вс 26 Мар",
+        "time": "12:30",
+        "cleaning_time": 3.0,
+        "frequency": "1 раз или первый раз",
+        "standart_price": 65,
+        "extra_service": [],
+        "extra_price": null,
+        "discount_amount": null,
+        "payment": 65.0
+    },
+    "address": {
+        "street": "Лесной",
+        "house": "37",
+        "flat": "117"
+    },
+    "contact_info": {
+        "name": "Александра",
+        "tel": "+375 29 334 03 99",
+        "email": "dsads@aseddas"
+    },
+    "user_id": 694443138,
+    "user_name": "Serj_you",
+    "is_created_by_admin": true,
+    "cleaner": [694443138]
+}

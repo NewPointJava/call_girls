@@ -1,0 +1,28 @@
+{
+    "order_info": {
+            "room": null,
+            "bathroom": null,
+            "date": null,
+            "time": null,
+            "cleaning_time": null,
+            "frequency": null,
+            "standart_price": null,
+            "extra_service": [],
+            "extra_price": null,
+            "discount_amount": null,
+            "payment": null
+                    },
+    "address": {
+            "street": null,
+            "house": null,
+            "flat": null
+                    },
+    "contact_info": {
+            "name": null,
+            "tel": null,
+            "email": null
+                    },
+    "user_id": null,
+    "user_name": null,
+    "is_created_by_admin": false
+}

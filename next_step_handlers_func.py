@@ -1,5 +1,6 @@
-from keyboards import thanks_keyboard, send_order_to_admin
-from settings import bot, orders
+from keyboards import thanks_keyboard, send_order_to_admin, admin_check_order_keyboard
+from service_function import get_order_id_from_json, from_caption_to_dict, get_text_from_order_dict
+from settings import bot, orders, admins, not_verified_orders_list
 
 
 def cath_addres(message, text, m_id, order_id):
@@ -355,12 +356,29 @@ def cath_email(message, text, m_id, order_id):
             bot.delete_message(message.chat.id, message.message_id - 1)
         except:
             pass
-        try:
-            bot.edit_message_caption(orders[message.chat.id], message.chat.id, order_id,reply_markup=send_order_to_admin)
-        except:
-            bot.send_photo(message.chat.id,
-                           "https://kartinkin.net/uploads/posts/2021-07/1626169458_2-kartinkin-com-p-uborka-art-art-krasivo-3.jpg",
-                           orders[message.chat.id],reply_markup=send_order_to_admin())
+        it_admin = False
+        for x in admins:
+            if int(message.chat.id) == x:
+                it_admin = True
+                break
+        if it_admin == False:
+            try:
+                bot.edit_message_caption(orders[message.chat.id], message.chat.id, order_id, reply_markup=send_order_to_admin)
+            except:
+                bot.send_photo(message.chat.id,
+                               "https://kartinkin.net/uploads/posts/2021-07/1626169458_2-kartinkin-com-p-uborka-art-art-krasivo-3.jpg",
+                               orders[message.chat.id], reply_markup=send_order_to_admin())
+        else:
+            bot.delete_message(message.chat.id, order_id)
+            order_id = get_order_id_from_json()
+            order_dict = from_caption_to_dict(orders[message.chat.id])
+            order_dict["user_id"] = message.chat.id
+            order_dict["user_name"] = message.from_user.username
+            order_dict["is_created_by_admin"] = True
+            not_verified_orders_list.append([order_id, order_dict])
+            text_order = get_text_from_order_dict(order_dict)
+            bot.send_photo(message.chat.id, "https://i.artfile.ru/1920x1200_645851_[www.ArtFile.ru].jpg", text_order, reply_markup=admin_check_order_keyboard(order_id))
+
 
     elif message.content_type != "text" or message.text[0] == "/":
         try:
