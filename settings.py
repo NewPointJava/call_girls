@@ -1,3 +1,5 @@
+from datetime import datetime, timedelta
+
 import telebot
 
 botToken = '5910446276:AAEmL0yB9IEU3SPwzzUT9BXLmIxdXivBh3s'
@@ -27,11 +29,19 @@ extra_name_hour_cost_dict = dict({
 })
 
 empty_day = []
-for i in range(24):
-    empty_day.append(True)
+hour = datetime.strptime("08:00", "%H:%M")
+for i in range(28):
+    hour = hour + timedelta(minutes=30)
+    temp = hour.strftime("%H:%M")
+    empty_day.append([temp, True])
+print(empty_day)
 
 
 
+schedule = dict()
+for x in cleaners:
+    schedule[str(x)] = dict()
+print(schedule)
 
 
 
@@ -106,8 +116,8 @@ not_verified_orders_list.append([2, dict({
     "order_info": {
             "room": 2,
             "bathroom": 2,
-            "date": "CБ 99 Фев",
-            "time": "11:00",
+            "date": "Пт 10 Фев",
+            "time": "14:00",
             "cleaning_time": 4,
             "frequency": "1 раз или первый раз",
             "standart_price": 20,
@@ -130,33 +140,6 @@ not_verified_orders_list.append([2, dict({
     "user_name": None
 })])
 
-not_verified_orders_list.append([5, dict({
-    "order_info": {
-            "room": 2,
-            "bathroom": 2,
-            "date": "CБ 11 Фев",
-            "time": "11:00",
-            "cleaning_time": 4,
-            "frequency": "1 раз или первый раз",
-            "standart_price": 20,
-            "extra_service": [],
-            "extra_price": None,
-            "discount_amount": None,
-            "payment": 20
-                    },
-    "address": {
-            "street": "222",
-            "house": "2222",
-            "flat": "22222"
-                    },
-    "contact_info": {
-            "name": "name2",
-            "tel": "tel2",
-            "email": "email2"
-                    },
-    "user_id": 222222,
-    "user_name": "Serj_you"
-})])
 not_verified_orders_list.append([3, dict({
     "order_info": {
             "room": 2,
@@ -185,6 +168,33 @@ not_verified_orders_list.append([3, dict({
     "user_name": "Serj_you"
 })])
 not_verified_orders_list.append([4, dict({
+    "order_info": {
+            "room": 2,
+            "bathroom": 2,
+            "date": "CБ 11 Фев",
+            "time": "11:00",
+            "cleaning_time": 4,
+            "frequency": "1 раз или первый раз",
+            "standart_price": 20,
+            "extra_service": [],
+            "extra_price": None,
+            "discount_amount": None,
+            "payment": 20
+                    },
+    "address": {
+            "street": "222",
+            "house": "2222",
+            "flat": "22222"
+                    },
+    "contact_info": {
+            "name": "name2",
+            "tel": "tel2",
+            "email": "email2"
+                    },
+    "user_id": 222222,
+    "user_name": "Serj_you"
+})])
+not_verified_orders_list.append([5, dict({
     "order_info": {
             "room": 2,
             "bathroom": 2,

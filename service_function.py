@@ -1,8 +1,12 @@
 import json
+import time
 from datetime import datetime, date, timedelta
 from settings import check_in_price, room_price, bathroom_price, check_in_time, room_time, bathroom_time, \
-    cleaning_frequency_and_discount_dict, extra_name_hour_cost_dict, empty_order, admins, feedbacks, cleaners
-from translate_func import translate_month, translate_day_of_the_week
+    cleaning_frequency_and_discount_dict, extra_name_hour_cost_dict, empty_order, admins, feedbacks, cleaners, \
+    not_verified_orders_list, schedule, empty_day
+import locale
+
+locale.setlocale(category=locale.LC_ALL, locale="Russian")
 
 
 def cost_calculation_st1(call_data):
@@ -39,10 +43,10 @@ def order_card(call_data, cleaning_frequency_int):
     room_amount = int(call_data[0])
     bathroom_amount = int(call_data[1])
     delta = date.today() + timedelta(days=1)
+    print(delta)
     delta = delta.strftime("%a:%d:%b")
+    print(delta)
     delta = delta.split(":")
-    delta[0] = translate_day_of_the_week(delta[0])
-    delta[2] = translate_month(delta[2])
     time_order = delta[0] + " " + delta[1] + " " + delta[2] + " 08:00"
 
     if room_amount <= 1:
@@ -83,10 +87,9 @@ def edit_order_caption_date(caption, cleaning_date):
     date_and_time = caption[2]
     date_and_time = date_and_time.split(" ")
     cleaning_date = cleaning_date.strftime("%b %a %d")
+    print(cleaning_date)
     cleaning_date = str(cleaning_date)
     cleaning_date = cleaning_date.split(" ")
-    cleaning_date[0] = translate_month(cleaning_date[0])
-    cleaning_date[1] = translate_day_of_the_week(cleaning_date[1])
     cleaning_date = cleaning_date[1] + " " + cleaning_date[2] + " " + cleaning_date[0]
     caption[2] = f'Дата уборки: {cleaning_date} {date_and_time[-1]}'
     new_caption = "\n".join(caption)
@@ -390,7 +393,6 @@ def get_text_from_feedback_dict(feedback_number):
     return text
 
 
-
 def open_json_order_by_id(order_id):
     try:
         f = open("orders/" + str(order_id) + ".json", "r", encoding="utf-8")
@@ -403,3 +405,78 @@ def open_json_order_by_id(order_id):
     return text
 
 
+def manual_assign_cleaner_to_order(cleaner_id, order_id):
+    order_dict = {}
+    temp = 0
+    for x in not_verified_orders_list:
+        if x[0] == order_id:
+            order_dict = x[1]
+            temp = 1
+            break
+    if temp == 0:
+        return False, "Заказ не найден"
+    date_cleaning = order_dict["order_info"]["date"]
+    print("date_cleaning = ", date_cleaning)
+    time_start = order_dict["order_info"]["time"]
+    time_start = datetime.strptime(time_start, "%H:%M")
+    print("time_start =", str(time_start))
+    time_cleaning = order_dict["order_info"]["cleaning_time"]
+    time_end = time_start + timedelta(hours=time_cleaning)
+    # 1ый этап - Проверка что время работы заказа меньше 9ч и что время окончания уборки не больше 22.00
+    if time_cleaning <= 9 and time_start + timedelta(hours=time_cleaning) <= datetime.strptime("22:00", "%H:%M"):
+        print("Можно назначить одного клинера")
+        # 2ой этап - Проверка Свободен ли этот день у клинера
+        if date_cleaning not in schedule[str(cleaner_id)].keys():
+            print("В расписании такого дня нет, можно запихнуть")
+            schedule[str(cleaner_id)][date_cleaning] = empty_day
+            k = 0
+            for i in range(len(schedule[str(cleaner_id)][date_cleaning])):
+                # print(schedule[str(cleaner_id)][date_cleaning][i][0])
+                # print(time_end.strftime("%H:%M"))
+                if schedule[str(cleaner_id)][date_cleaning][i][0] == (time_start - timedelta(hours=1)).strftime("%H:%M") and k == 0:
+                    k = 1
+                    schedule[str(cleaner_id)][date_cleaning][i][1] = False
+                    pass
+                if k == 1 and schedule[str(cleaner_id)][date_cleaning][i][0] != time_end.strftime("%H:%M"):
+                    schedule[str(cleaner_id)][date_cleaning][i][1] = False
+
+                if k == 1 and schedule[str(cleaner_id)][date_cleaning][i][0] == time_end.strftime("%H:%M"):
+                    break
+            print(schedule[str(cleaner_id)][date_cleaning])
+            return True, "Успешно назначили клинера " + str(cleaner_id)
+        else:
+            # 2ой этап - Если в этот день у клинера уже есть заказ - Проверяем, свободен ли промежуток времени для данной уборки
+            print("такой день уже занят")
+            for i in range(len(schedule[str(cleaner_id)][date_cleaning])):
+                if schedule[str(cleaner_id)][date_cleaning][i][0] == (time_start - timedelta(hours=1)).strftime("%H:%M"):
+                    if schedule[str(cleaner_id)][date_cleaning][i][1] == False:
+                        print("На это время этот клинер занят")
+                        return False, "На это время этот клинер " + str(cleaner_id) + " занят. Попробуйте другого"
+                    else:
+                        for j in range(i+1, len(schedule[str(cleaner_id)][date_cleaning])):
+                            print(f'Время = {schedule[str(cleaner_id)][date_cleaning][j][0]}, Статус {schedule[str(cleaner_id)][date_cleaning][j][1]}')
+                            if schedule[str(cleaner_id)][date_cleaning][j][0] == time_end.strftime("%H:%M"):
+                                print("Этот промежуток пустой")
+                                break
+                            if schedule[str(cleaner_id)][date_cleaning][j][1] == False:
+                                print("тут косяк")
+                                return False, "На это время этот клинер " + str(cleaner_id) + " занят. Попробуйте другого"
+
+                        k = 0
+                        for i in range(len(schedule[str(cleaner_id)][date_cleaning])):
+                            # print(schedule[str(cleaner_id)][date_cleaning][i][0])
+                            # print(time_end.strftime("%H:%M"))
+                            if schedule[str(cleaner_id)][date_cleaning][i][0] == (
+                                    time_start - timedelta(hours=1)).strftime("%H:%M") and k == 0:
+                                k = 1
+                                schedule[str(cleaner_id)][date_cleaning][i][1] = False
+                                pass
+                            if k == 1 and schedule[str(cleaner_id)][date_cleaning][i][0] != time_end.strftime("%H:%M"):
+                                schedule[str(cleaner_id)][date_cleaning][i][1] = False
+
+                            if k == 1 and schedule[str(cleaner_id)][date_cleaning][i][0] == time_end.strftime("%H:%M"):
+                                break
+                        print(schedule[str(cleaner_id)][date_cleaning])
+                        return True, "Успешно Назначили клинера " + str(cleaner_id)
+    else:
+        return False, "Тут Хуета\nЛибо заказ длится больше 9 часов\nЛибо он закончится позже 22:00\nА в  ручную  пока что двоих клинеров нельзя назначить :("

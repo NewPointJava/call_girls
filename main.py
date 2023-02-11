@@ -7,11 +7,12 @@ from telegram_bot_calendar import DetailedTelegramCalendar, LSTEP
 from keyboards import price_1st_step, st2_keyboard, choose_time_keyboard, choose_frequency_keyboard, \
     st2_frequency_keyboard, extra_service_st1_keyboard, st2_extra_service_keyboard, check_order_keyboard, \
     thanks_keyboard, not_verified_slider_keyboard, admin_check_order_keyboard, feedbacks_slider_keyboard, \
-    choose_cleaner_keyboard
+    choose_cleaner_keyboard, successful_cleaner_assign_keyboard
 from next_step_handlers_func import cath_addres
 from service_function import cost_calculation_st1, order_card, edit_order_caption_date, edit_order_caption_time, \
     edit_caption_extra_service, edit_caption_discount, from_caption_to_dict, get_order_id_from_json, is_admin, \
-    get_text_from_order_dict, get_text_from_feedback_dict, is_cleaner, open_json_order_by_id
+    get_text_from_order_dict, get_text_from_feedback_dict, is_cleaner, open_json_order_by_id, \
+    manual_assign_cleaner_to_order
 from settings import bot, room_price, bathroom_price, check_in_price, orders, not_verified_orders_list, admins, \
     feedbacks
 
@@ -235,9 +236,29 @@ def call(call):
     if call.data[:5] == "ml_sh":
         order_id = call.data.split(":")
         order_id = int(order_id[1])
-        bot.edit_message_reply_markup(call.message.chat.id, call.message.message_id, reply_markup=choose_cleaner_keyboard(order_id))
+        bot.delete_message(call.message.chat.id,call.message.message_id)
+        bot.send_message(call.message.chat.id, "Выберите клиннера которого хотите назначить", reply_markup=choose_cleaner_keyboard(order_id))
 
-
+    if call.data[:2] == "cl":
+        temp = call.data.split(":")
+        temp = temp[1].split("*")
+        cleaner_id = int(temp[0])
+        order_id = int(temp[1])
+        is_empty, text = (manual_assign_cleaner_to_order(cleaner_id, order_id))
+        if not is_empty:
+            bot.delete_message(call.message.chat.id,call.message.message_id)
+            bot.send_message(call.message.chat.id, text, reply_markup=choose_cleaner_keyboard(order_id))
+        else:
+            bot.delete_message(call.message.chat.id, call.message.message_id)
+            bot.send_message(call.message.chat.id, text, reply_markup=successful_cleaner_assign_keyboard)
+            for i in range(len(not_verified_orders_list)):
+                if not_verified_orders_list[i][0] == order_id:
+                    with open('orders/' + str(order_id) + ".json", 'w', encoding='utf-8') as f:
+                        not_verified_orders_list[i][1]["cleaner"] = cleaner_id
+                        json.dump(not_verified_orders_list[i][1], f, ensure_ascii=False, indent=4)
+                        not_verified_orders_list.pop(i)
+                        f.close()
+                        break
 
 
 

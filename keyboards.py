@@ -6,6 +6,7 @@ exit_button = InlineKeyboardButton("Выход ❌", callback_data="qt")
 thanks_buttom = InlineKeyboardButton("Cпасибо ☑", callback_data="qt")
 thanks_keyboard = InlineKeyboardMarkup().add(thanks_buttom)
 
+successful_cleaner_assign_keyboard = InlineKeyboardMarkup().add(InlineKeyboardButton("Вернуться к списку заказов", callback_data="ntvr")).add(exit_button)
 
 
 def price_1st_step(room_amount, bathroom_amount):
@@ -238,3 +239,4 @@ def choose_cleaner_keyboard(order_id):
     keyboard.add(exit_button)
 
     return keyboard
+
