@@ -1,6 +1,8 @@
+from datetime import datetime, timedelta
+
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 
-from settings import extra_name_hour_cost_dict, feedbacks, cleaners
+from settings import extra_name_hour_cost_dict, feedbacks, cleaners, schedule
 
 exit_button = InlineKeyboardButton("Выход ❌", callback_data="qt")
 thanks_buttom = InlineKeyboardButton("Cпасибо ☑", callback_data="qt")
@@ -219,7 +221,7 @@ def feedbacks_slider_keyboard(feedback_number):
         next_number = 0
 
     next_bottom = InlineKeyboardButton("Следующий ➡️", callback_data="fb*" + str(next_number))
-    back_bottom = InlineKeyboardButton("⬅️Предыдущий", callback_data="fb*" + str(back_number))
+    back_bottom = InlineKeyboardButton("⬅️ Предыдущий", callback_data="fb*" + str(back_number))
 
     if len(feedbacks) <=1:
         keyboard.add(exit_button)
@@ -239,4 +241,61 @@ def choose_cleaner_keyboard(order_id):
     keyboard.add(exit_button)
 
     return keyboard
+
+
+def view_new_order_keyboard(order_id):
+    keyboard = InlineKeyboardMarkup().add(InlineKeyboardButton("Просмотреть заказ", callback_data="nt_ver:" + str(order_id))).add(exit_button)
+    return keyboard
+
+
+def schedule_slider_keyboard(cleaner_id, page_number):
+    cleaner_schedule = schedule[str(cleaner_id)]
+    work_days = sorted(cleaner_schedule)
+    today = datetime.now()
+    all_days = []
+    for i in range(60):
+        all_days.append(today.strftime("%a %d %b"))
+        today = today + timedelta(days=1)
+
+    day_week = (datetime.now()).strftime("%a")
+    if day_week != "Пн":
+        for i in range(7):
+            if (datetime.now() - timedelta(days=i+1)).strftime("%a") == "Пн":
+                all_days.insert(0, (datetime.now() - timedelta(days=i + 1)).strftime("%a %d %b"))
+                break
+            else:
+                all_days.insert(0, (datetime.now() - timedelta(days=i+1)).strftime("%a %d %b"))
+
+
+    keyboard = InlineKeyboardMarkup(row_width=3)
+
+    backbutton = InlineKeyboardButton(text="⬅", callback_data="schedule*" + str(page_number - 1))
+    nextbutton = InlineKeyboardButton(text="️➡", callback_data="schedule*" + str(page_number + 1))
+
+    slice_start = page_number*7
+    slice_end = (page_number+1)*7
+    if slice_end > len(all_days):
+        slice_end = len(all_days)
+    last_page = int(len(all_days)/7)
+    print(slice_start, slice_end, last_page)
+
+    for x in all_days[slice_start:slice_end]:
+        k = 0
+        for wd in work_days:
+            if wd == x:
+                k = 1
+        if k == 1:
+            keyboard.add(InlineKeyboardButton(x + " 🟩", callback_data="scwd*" + str(x)))
+        else:
+            keyboard.add(InlineKeyboardButton(x + " 🟥", callback_data="day_off"))
+    if page_number == 0:
+        keyboard.add(exit_button,nextbutton)
+    elif slice_end == len(all_days):
+        keyboard.add(backbutton, exit_button)
+    else:
+        keyboard.add(backbutton, exit_button, nextbutton)
+
+    return keyboard
+
+
 

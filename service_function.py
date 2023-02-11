@@ -1,6 +1,9 @@
 import json
-import time
 from datetime import datetime, date, timedelta
+
+from telebot.types import InlineKeyboardMarkup
+
+from get_and_set_json_information import set_schedule_to_json
 from settings import check_in_price, room_price, bathroom_price, check_in_time, room_time, bathroom_time, \
     cleaning_frequency_and_discount_dict, extra_name_hour_cost_dict, empty_order, admins, feedbacks, cleaners, \
     not_verified_orders_list, schedule, empty_day
@@ -241,6 +244,7 @@ def edit_caption_discount(caption, discount_percent):
 def from_caption_to_dict(caption):
     caption = caption.split("\n")
     order_dict = empty_order
+    print(order_dict)
     pos = 0
     for i in range(len(caption)):
         if "Адрес" in caption[i]:
@@ -310,17 +314,6 @@ def from_caption_to_dict(caption):
     return order_dict
 
 
-def get_order_id_from_json():
-    f = open("settings.json", "r", encoding="utf-8")
-    buf = json.loads(f.read())
-    f.close()
-    order_id = buf["order_id"] + 1
-    buf["order_id"] = order_id
-    with open('settings.json', 'w', encoding='utf-8') as f:
-        json.dump(buf, f, ensure_ascii=False, indent=4)
-    return order_id
-
-
 def is_admin(user_id):
     for x in admins:
         if int(user_id) == x:
@@ -384,9 +377,9 @@ def get_text_from_feedback_dict(feedback_number):
     text = ""
     text += feedback["name"]
     text += "\n" + feedback["text"]
-    text += "\n\nУборка выполнена " + feedback["date"]
+    text += "\n\nУборка выполнена в " + feedback["date"]
     if feedback["cleaner"] != "company":
-        text += "\nСпециалистом " + feedback["cleaner"]
+        text += "\nСпециалистом " + str(feedback["cleaner"])
     else:
         text +="\nКомпанией КлинниБогини"
 
@@ -416,10 +409,8 @@ def manual_assign_cleaner_to_order(cleaner_id, order_id):
     if temp == 0:
         return False, "Заказ не найден"
     date_cleaning = order_dict["order_info"]["date"]
-    print("date_cleaning = ", date_cleaning)
     time_start = order_dict["order_info"]["time"]
     time_start = datetime.strptime(time_start, "%H:%M")
-    print("time_start =", str(time_start))
     time_cleaning = order_dict["order_info"]["cleaning_time"]
     time_end = time_start + timedelta(hours=time_cleaning)
     # 1ый этап - Проверка что время работы заказа меньше 9ч и что время окончания уборки не больше 22.00
@@ -431,18 +422,20 @@ def manual_assign_cleaner_to_order(cleaner_id, order_id):
             schedule[str(cleaner_id)][date_cleaning] = empty_day
             k = 0
             for i in range(len(schedule[str(cleaner_id)][date_cleaning])):
-                # print(schedule[str(cleaner_id)][date_cleaning][i][0])
-                # print(time_end.strftime("%H:%M"))
                 if schedule[str(cleaner_id)][date_cleaning][i][0] == (time_start - timedelta(hours=1)).strftime("%H:%M") and k == 0:
-                    k = 1
+                    schedule[str(cleaner_id)][date_cleaning][i].append("start")
+                    schedule[str(cleaner_id)][date_cleaning][i].append(order_id)
                     schedule[str(cleaner_id)][date_cleaning][i][1] = False
-                    pass
+                    k = 1
+                    continue
                 if k == 1 and schedule[str(cleaner_id)][date_cleaning][i][0] != time_end.strftime("%H:%M"):
                     schedule[str(cleaner_id)][date_cleaning][i][1] = False
-
+                    schedule[str(cleaner_id)][date_cleaning][i].append("")
+                    schedule[str(cleaner_id)][date_cleaning][i].append(order_id)
                 if k == 1 and schedule[str(cleaner_id)][date_cleaning][i][0] == time_end.strftime("%H:%M"):
+                    schedule[str(cleaner_id)][date_cleaning][i-1][2] = "end"
                     break
-            print(schedule[str(cleaner_id)][date_cleaning])
+            set_schedule_to_json(schedule)
             return True, "Успешно назначили клинера " + str(cleaner_id)
         else:
             # 2ой этап - Если в этот день у клинера уже есть заказ - Проверяем, свободен ли промежуток времени для данной уборки
@@ -464,19 +457,36 @@ def manual_assign_cleaner_to_order(cleaner_id, order_id):
 
                         k = 0
                         for i in range(len(schedule[str(cleaner_id)][date_cleaning])):
-                            # print(schedule[str(cleaner_id)][date_cleaning][i][0])
-                            # print(time_end.strftime("%H:%M"))
-                            if schedule[str(cleaner_id)][date_cleaning][i][0] == (
-                                    time_start - timedelta(hours=1)).strftime("%H:%M") and k == 0:
+                            if schedule[str(cleaner_id)][date_cleaning][i][0] == (time_start - timedelta(hours=1)).strftime("%H:%M") and k == 0:
                                 k = 1
                                 schedule[str(cleaner_id)][date_cleaning][i][1] = False
+                                schedule[str(cleaner_id)][date_cleaning][i].append(order_id)
                                 pass
                             if k == 1 and schedule[str(cleaner_id)][date_cleaning][i][0] != time_end.strftime("%H:%M"):
                                 schedule[str(cleaner_id)][date_cleaning][i][1] = False
+                                schedule[str(cleaner_id)][date_cleaning][i].append(order_id)
 
                             if k == 1 and schedule[str(cleaner_id)][date_cleaning][i][0] == time_end.strftime("%H:%M"):
                                 break
                         print(schedule[str(cleaner_id)][date_cleaning])
+                        set_schedule_to_json(schedule)
                         return True, "Успешно Назначили клинера " + str(cleaner_id)
     else:
         return False, "Тут Хуета\nЛибо заказ длится больше 9 часов\nЛибо он закончится позже 22:00\nА в  ручную  пока что двоих клинеров нельзя назначить :("
+
+
+def schedule_building(cleaner_id):
+    cleaner_schedule = schedule[str(cleaner_id)]
+    work_days = sorted(cleaner_schedule)
+    print(work_days)
+    today = datetime.now()
+    end_schedule = today + timedelta(days=60)
+    all_days = []
+    for i in range(60):
+        all_days.append(today.strftime("%a %d %b"))
+        today = today + timedelta(days=1)
+    print(all_days)
+
+    keyboard = InlineKeyboardMarkup(row_width =1)
+
+

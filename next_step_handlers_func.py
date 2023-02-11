@@ -1,5 +1,6 @@
 from keyboards import thanks_keyboard, send_order_to_admin, admin_check_order_keyboard
-from service_function import get_order_id_from_json, from_caption_to_dict, get_text_from_order_dict
+from service_function import from_caption_to_dict, get_text_from_order_dict
+from get_and_set_json_information import get_and_set_order_id_from_json
 from settings import bot, orders, admins, not_verified_orders_list
 
 
@@ -119,10 +120,10 @@ def cath_flat_number(message, text, m_id, order_id):
         old_text = "\n".join(text)
 
         text.pop()
-        text[-1] = "\nЕсли всё верно - ☑️нажмите /continue "
-        text.insert(len(text), "\nчтобы изменить адрес нажмите /address")
-        text.insert(len(text), "чтобы изменить номер дома нажмите /house_number")
-        text.insert(len(text), "чтобы изменить номер квартиры нажмите /flat_number")
+        text[-1] = "\n\n\nЕсли всё верно - ☑️️нажмите /continue "
+        text.insert(len(text)-1, "\n/address нажмите чтобы изменить адрес")
+        text.insert(len(text)-1, "/house_number нажмите чтобы изменить номер дома")
+        text.insert(len(text)-1, "/flat_number  нажмите чтобы изменить номер квартиры")
         text = "\n".join(text)
         try:
             bot.delete_message(message.chat.id, message.message_id)
@@ -350,7 +351,6 @@ def cath_email(message, text, m_id, order_id):
         text[3] = "Email: " + message.text
         text = "\n".join(text)
         orders[message.chat.id] = orders[message.chat.id] + "\n\n" + text
-        print(orders[message.chat.id])
         try:
             bot.delete_message(message.chat.id, message.message_id)
             bot.delete_message(message.chat.id, message.message_id - 1)
@@ -370,7 +370,7 @@ def cath_email(message, text, m_id, order_id):
                                orders[message.chat.id], reply_markup=send_order_to_admin())
         else:
             bot.delete_message(message.chat.id, order_id)
-            order_id = get_order_id_from_json()
+            order_id = get_and_set_order_id_from_json()
             order_dict = from_caption_to_dict(orders[message.chat.id])
             order_dict["user_id"] = message.chat.id
             order_dict["user_name"] = message.from_user.username
