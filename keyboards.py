@@ -5,6 +5,7 @@ from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 from settings import extra_name_hour_cost_dict, feedbacks, cleaners, schedule, admins
 
 exit_button = InlineKeyboardButton("Выход ❌", callback_data="qt")
+exit_keyboard = InlineKeyboardMarkup().add(exit_button)
 thanks_buttom = InlineKeyboardButton("Cпасибо ☑", callback_data="qt")
 thanks_keyboard = InlineKeyboardMarkup().add(thanks_buttom)
 
@@ -248,8 +249,6 @@ def view_new_order_keyboard(order_id):
 
 
 def schedule_slider_keyboard(cleaner_id, page_number):
-    # if cleaner_id not in schedule.keys():
-    #     schedule[str(cleaner_id)] = dict()
     cleaner_schedule = schedule[str(cleaner_id)]
     work_days = sorted(cleaner_schedule)
     today = datetime.now()
@@ -267,6 +266,8 @@ def schedule_slider_keyboard(cleaner_id, page_number):
             else:
                 all_days.insert(0, (datetime.now() - timedelta(days=i+1)).strftime("%a %d %b"))
 
+    for i in range(7):
+            all_days.insert(0, (datetime.now() - timedelta(days=i + 1)).strftime("%a %d %b"))
 
     keyboard = InlineKeyboardMarkup(row_width=3)
 
@@ -338,7 +339,7 @@ def cleaner_view_order_keyboard(order_id, return_work_day, return_number_page, o
     customer_id = order_dict["user_id"]
     k = 0
 
-    keyboard.add(return_to_choose_work_day_bottom,return_to_choose_order_bottom)
+    keyboard.add(return_to_choose_order_bottom, return_to_choose_work_day_bottom)
     for x in admins:
         if customer_id == x:
             k = 1

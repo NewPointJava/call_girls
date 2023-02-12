@@ -1,14 +1,12 @@
 import json
 import time
 from datetime import date, timedelta
-
-from telebot.types import InlineKeyboardButton
 from telegram_bot_calendar import DetailedTelegramCalendar, LSTEP
 from keyboards import price_1st_step, st2_keyboard, choose_time_keyboard, choose_frequency_keyboard, \
     st2_frequency_keyboard, extra_service_st1_keyboard, st2_extra_service_keyboard, check_order_keyboard, \
     thanks_keyboard, not_verified_slider_keyboard, admin_check_order_keyboard, feedbacks_slider_keyboard, \
     choose_cleaner_keyboard, successful_cleaner_assign_keyboard, view_new_order_keyboard, schedule_slider_keyboard, \
-    schedule_view_work_day, cleaner_view_order_keyboard
+    schedule_view_work_day, cleaner_view_order_keyboard, exit_keyboard
 from next_step_handlers_func import cath_addres
 from service_function import cost_calculation_st1, order_card, edit_order_caption_date, edit_order_caption_time, \
     edit_caption_extra_service, edit_caption_discount, from_caption_to_dict, is_admin, \
@@ -21,15 +19,19 @@ from settings import bot, room_price, bathroom_price, check_in_price, orders, no
 
 @bot.message_handler(commands=['start'])
 def start(message):
+    text ="""Вас приветсвует компания КлинниБогини!
+Этот чат-бот поможет вам заказать уборку быстро и без лишних разговоров
 
-    if is_cleaner(message.chat.id):
-        text = open_json_order_by_id(27)
-        if text != "":
-            bot.send_message(message.chat.id, text, reply_markup=thanks_keyboard)
-        else:
-            bot.send_message(message.chat.id, "Данный заказ не найден", reply_markup=thanks_keyboard)
-    else:
-        bot.send_message(message.chat.id, "Вы не являтесь клинером компании.\nЧтобы узнать о возможностях бота напишите   /help ", reply_markup=thanks_keyboard)
+/new_order - Нажмите чтобы начать оформление заказа
+
+/view_feedbacks - Нажмите чтобы посмотреть отзывы о компании
+
+/help - Нажмите чтобы получить больше информацией по управлению ботом
+
+/info - Нажмите чтобы узнать подробнее о компании
+"""
+    bot.send_message(message.chat.id, text, reply_markup=thanks_keyboard)
+
 
 @bot.message_handler(commands=['help'])
 def help_user(message):
@@ -46,7 +48,7 @@ def help_user(message):
             f'Чтобы получить доп информацию о возможностях бота\n'\
             f'Используйте команду /ad_help'
 
-    bot.send_message(message.chat.id, text)
+    bot.send_message(message.chat.id, text, reply_markup=thanks_keyboard)
 
 
 @bot.message_handler(commands=['info'])
@@ -65,8 +67,43 @@ def info(message):
         f'Чек-лист уборки - https://drive.google.com/file/d/1gH8ogErgeWSeqIPhM9XQVPitbmzHxG1v/view\n\n'\
         f'Сделать заказ - /new_order\n\n'\
         f'© 2022 ООО «Клинни Про», УНП 192598987 Республика Беларусь, 220036, Минск, ул. Западная 13, часть комнаты 10-Ф'
-    bot.send_message(message.chat.id, text)
+    bot.send_message(message.chat.id, text, reply_markup=thanks_keyboard)
 
+
+@bot.message_handler(commands=['ad_help'])
+def ad_help(message):
+    text = """/new_order - Нажми чтобы создать заказ.
+После ввода всей информации, заказ сохранится в необработанных и вам предложат выбор :
+Назначить клинера ручным или автоматическим способом, либо же удалить заказ. 
+
+/not_verified - Показывает список всех необработанных заказов.
+Нажмите на дату заказа и обработайте его.
+"""
+    if is_admin(message.chat.id):
+        bot.send_message(message.chat.id, text, reply_markup=thanks_keyboard)
+    else:
+        bot.send_message(message.chat.id, "‼ Вы не обладаете правами доступа ‼", reply_markup=exit_keyboard)
+
+
+@bot.message_handler(commands=['cl_help'])
+def cl_help(message):
+    text = """/schedule - Просмотреть расписание.
+Символы помогают увидеть дни
+🔴 - когда есть заказы ⚪️ - когда нет заказов
+
+Нажмите на день недели, чтобы увидеть заказы.
+
+На следующем этапе нажмите на заказ - чтобы увидеть его подробности.
+Кроме того на этапе просмотра заказа если вы выполнили заказ, у вас появиться кнопка - 
+
+✅ Уборка закончена. Отправить запрос на отзыв
+
+Нажав на неё заказчику придёт уведомление о завершении уборки, а так же запрос на оставление отзыва.
+"""
+    if is_cleaner(message.chat.id):
+        bot.send_message(message.chat.id, text, reply_markup=thanks_keyboard)
+    else:
+        bot.send_message(message.chat.id, "‼ Вы не обладаете правами доступа ‼", reply_markup=exit_keyboard)
 
 @bot.message_handler(commands=['new_order'])
 def new_order(message):
@@ -80,7 +117,7 @@ def not_verified(message):
     if is_admin(message.chat.id):
         bot.send_message(message.chat.id, "Вот список не проверенных заказов", reply_markup=not_verified_slider_keyboard(not_verified_orders_list, 0))
     else:
-        bot.send_message(message.chat.id, "Вы не являетесь админом. Воспользуйтесь командной /help", reply_markup=thanks_keyboard)
+        bot.send_message(message.chat.id, "‼ Вы не обладаете правами доступа ‼", reply_markup=exit_keyboard)
 
 
 @bot.message_handler(commands=['view_feedbacks'])
@@ -92,7 +129,7 @@ def view_feedback(message):
 @bot.message_handler(commands=['schedule'])
 def view_schedule(message):
     if is_cleaner(message.chat.id):
-        bot.send_message(message.chat.id, "Выберите день недели\n🔴 - есть заказы\n⚪ - нет заказов", reply_markup=schedule_slider_keyboard(message.chat.id,0))
+        bot.send_message(message.chat.id, "Выберите день недели\n🔴 - есть заказы\n⚪ - нет заказов", reply_markup=schedule_slider_keyboard(message.chat.id, 0))
     elif is_admin(message.chat.id):
         bot.send_message(message.chat.id, "На данном этапе реализовано только для клинеров\nДобавьте свой id в list клеанеров\n(в jsons_config/settings.json  key = 'cleaners')")
     else:
@@ -195,19 +232,6 @@ def call(call):
         except:
             print("Сформирован заказ - ID = " + order_id + "\n", order_dict)
 
-    # if call.data[:4] == "save":
-    #     #Тестово! Потом переделать, после того как мы назначаем клинера в ручную
-    #     order_id = call.data.split("*")
-    #     order_id = int(order_id[1])
-    #     for x in not_verified_orders_list:
-    #         if x[0] == order_id:
-    #             print("зашло в if")
-    #             with open('orders/' + str(order_id) + ".json", 'w', encoding='utf-8') as f:
-    #                 json.dump(x[1], f, ensure_ascii=False, indent=4)
-    #                 f.close()
-    #                 break
-
-
     if call.data == "ntvr":
         bot.delete_message(call.message.chat.id,call.message.message_id)
         bot.send_message(call.message.chat.id, "Вот список не проверенных заказов", reply_markup=not_verified_slider_keyboard(not_verified_orders_list, 0))
@@ -246,7 +270,7 @@ def call(call):
     if call.data[:5] == "ml_sh":
         order_id = call.data.split(":")
         order_id = int(order_id[1])
-        bot.delete_message(call.message.chat.id,call.message.message_id)
+        bot.delete_message(call.message.chat.id, call.message.message_id)
         bot.send_message(call.message.chat.id, "Выберите клиннера которого хотите назначить", reply_markup=choose_cleaner_keyboard(order_id))
 
     if call.data[:2] == "cl":

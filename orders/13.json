@@ -1,0 +1,30 @@
+{
+    "order_info": {
+        "room": 1,
+        "bathroom": 1,
+        "date": "Пт 17 фев",
+        "time": "17:30",
+        "cleaning_time": 3.0,
+        "frequency": "1 раз или первый раз",
+        "standart_price": 65,
+        "extra_service": [],
+        "extra_price": null,
+        "discount_amount": null,
+        "payment": 65.0
+    },
+    "address": {
+        "street": "🥒",
+        "house": "🍠",
+        "flat": "🥯"
+    },
+    "contact_info": {
+        "name": "🧀",
+        "tel": "🥓",
+        "email": "🍳"
+    },
+    "user_id": 694443138,
+    "user_name": "Serj_you",
+    "is_created_by_admin": true,
+    "cleaner": 694443138,
+    "is_done": false
+}
