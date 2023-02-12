@@ -1,5 +1,5 @@
 from keyboards import thanks_keyboard, send_order_to_admin, admin_check_order_keyboard
-from service_function import from_caption_to_dict, get_text_from_order_dict
+from service_function import from_caption_to_dict, get_text_from_order_dict, is_admin
 from get_and_set_json_information import get_and_set_order_id_from_json
 from settings import bot, orders, admins, not_verified_orders_list
 
@@ -356,12 +356,8 @@ def cath_email(message, text, m_id, order_id):
             bot.delete_message(message.chat.id, message.message_id - 1)
         except:
             pass
-        it_admin = False
-        for x in admins:
-            if int(message.chat.id) == x:
-                it_admin = True
-                break
-        if it_admin == False:
+
+        if not is_admin(message.chat.id):
             try:
                 bot.edit_message_caption(orders[message.chat.id], message.chat.id, order_id, reply_markup=send_order_to_admin)
             except:

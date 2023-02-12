@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 
-from settings import extra_name_hour_cost_dict, feedbacks, cleaners, schedule
+from settings import extra_name_hour_cost_dict, feedbacks, cleaners, schedule, admins
 
 exit_button = InlineKeyboardButton("Выход ❌", callback_data="qt")
 thanks_buttom = InlineKeyboardButton("Cпасибо ☑", callback_data="qt")
@@ -158,7 +158,6 @@ def check_order_keyboard(caption):
 
 def send_order_to_admin():
     keyboard = InlineKeyboardMarkup(row_width=1)
-
     keyboard.add(InlineKeyboardButton("Заказать уборку ☑️", callback_data="add"), InlineKeyboardButton("Удалить заказ",callback_data="qt"))
     return keyboard
 
@@ -249,6 +248,8 @@ def view_new_order_keyboard(order_id):
 
 
 def schedule_slider_keyboard(cleaner_id, page_number):
+    # if cleaner_id not in schedule.keys():
+    #     schedule[str(cleaner_id)] = dict()
     cleaner_schedule = schedule[str(cleaner_id)]
     work_days = sorted(cleaner_schedule)
     today = datetime.now()
@@ -276,18 +277,15 @@ def schedule_slider_keyboard(cleaner_id, page_number):
     slice_end = (page_number+1)*7
     if slice_end > len(all_days):
         slice_end = len(all_days)
-    last_page = int(len(all_days)/7)
-    print(slice_start, slice_end, last_page)
-
     for x in all_days[slice_start:slice_end]:
         k = 0
         for wd in work_days:
-            if wd == x:
+            if wd.casefold() == x.casefold():
                 k = 1
         if k == 1:
-            keyboard.add(InlineKeyboardButton(x + " 🟩", callback_data="scwd*" + str(x)))
+            keyboard.add(InlineKeyboardButton(x + " 🔴", callback_data="scwd*" + str(x) + ":" + str(page_number)))
         else:
-            keyboard.add(InlineKeyboardButton(x + " 🟥", callback_data="day_off"))
+            keyboard.add(InlineKeyboardButton(x + " ⚪️", callback_data="day_off*" + str(page_number)))
     if page_number == 0:
         keyboard.add(exit_button,nextbutton)
     elif slice_end == len(all_days):
@@ -296,6 +294,60 @@ def schedule_slider_keyboard(cleaner_id, page_number):
         keyboard.add(backbutton, exit_button, nextbutton)
 
     return keyboard
+
+def schedule_view_work_day(cleaner_id, work_day, return_page_number):
+    cleaner_work_day = schedule[str(cleaner_id)][work_day]
+    print(cleaner_work_day)
+    order_list = []
+    time_start_list = []
+    time_end_list = []
+    address_list = []
+    temp = 0
+    for x in cleaner_work_day:
+        print(len(x))
+        if len(x) == 5:
+            order_list.append(x[3])
+            time_start_list.append(x[0])
+            address_list.append(x[4])
+        elif len(x) == 3:
+                time_end_list.append(x[0])
+    print("order_list = ", order_list)
+    for i in range(len(order_list)):
+        print(order_list[i], time_start_list[i], time_end_list[i])
+
+    keyboard = InlineKeyboardMarkup(row_width=1)
+
+    for i in range(len(order_list)):
+        time_start_list[i] = (datetime.strptime(time_start_list[i], "%H:%M") + timedelta(hours=1)).strftime("%H:%M")
+        time_end_list[i] = (datetime.strptime(time_end_list[i], "%H:%M") + timedelta(minutes=30)).strftime("%H:%M")
+
+    bottom_list = [InlineKeyboardButton("🕐" +time_start_list[i] + " - " + time_end_list[i] + ", 🏠 " + address_list[i], callback_data="sc_order*" + str(order_list[i]) + ":" + work_day + ":" + return_page_number) for i in range(len(order_list))]
+    return_bottom = InlineKeyboardButton("🔙 Вернуться к выбору дня ", callback_data="sc_return*" + return_page_number)
+    keyboard.add(*bottom_list, return_bottom, exit_button)
+
+    return keyboard
+
+
+def cleaner_view_order_keyboard(order_id, return_work_day, return_number_page, order_dict):
+    keyboard = InlineKeyboardMarkup(row_width=1)
+    return_to_choose_order_bottom = InlineKeyboardButton("🔙  Вернуться к выбору заказа", callback_data="scwd*" + return_work_day+":" + str(return_number_page))
+    return_to_choose_work_day_bottom = InlineKeyboardButton("🔙  Вернуться к выбору рабочего дня", callback_data="sc_return*" + str(return_number_page))
+    done_cleaning_bottom = InlineKeyboardButton("✅ Уборка закончена\nОтправить запрос на отзыв", callback_data="cleaning_done*"+ str(order_id))
+    today = datetime.now()
+    date_start = datetime.strptime(str(today.year) + " " + order_dict["order_info"]["date"] + " " + order_dict["order_info"]["time"], "%Y %a %d %b %H:%M")
+    customer_id = order_dict["user_id"]
+    k = 0
+
+    keyboard.add(return_to_choose_work_day_bottom,return_to_choose_order_bottom)
+    for x in admins:
+        if customer_id == x:
+            k = 1
+            break
+    if k == 0 and date_start < today:
+        keyboard.add(done_cleaning_bottom)
+    keyboard.add(exit_button)
+    return keyboard
+
 
 
 

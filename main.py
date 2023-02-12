@@ -7,20 +7,21 @@ from telegram_bot_calendar import DetailedTelegramCalendar, LSTEP
 from keyboards import price_1st_step, st2_keyboard, choose_time_keyboard, choose_frequency_keyboard, \
     st2_frequency_keyboard, extra_service_st1_keyboard, st2_extra_service_keyboard, check_order_keyboard, \
     thanks_keyboard, not_verified_slider_keyboard, admin_check_order_keyboard, feedbacks_slider_keyboard, \
-    choose_cleaner_keyboard, successful_cleaner_assign_keyboard, view_new_order_keyboard, schedule_slider_keyboard
+    choose_cleaner_keyboard, successful_cleaner_assign_keyboard, view_new_order_keyboard, schedule_slider_keyboard, \
+    schedule_view_work_day, cleaner_view_order_keyboard
 from next_step_handlers_func import cath_addres
 from service_function import cost_calculation_st1, order_card, edit_order_caption_date, edit_order_caption_time, \
     edit_caption_extra_service, edit_caption_discount, from_caption_to_dict, is_admin, \
     get_text_from_order_dict, get_text_from_feedback_dict, is_cleaner, open_json_order_by_id, \
-    manual_assign_cleaner_to_order, schedule_building
+    manual_assign_cleaner_to_order
 from get_and_set_json_information import get_and_set_order_id_from_json
 from settings import bot, room_price, bathroom_price, check_in_price, orders, not_verified_orders_list, admins, \
-    feedbacks
+    feedbacks, schedule
 
 
 @bot.message_handler(commands=['start'])
 def start(message):
-    print(message.chat.id)
+
     if is_cleaner(message.chat.id):
         text = open_json_order_by_id(27)
         if text != "":
@@ -91,7 +92,7 @@ def view_feedback(message):
 @bot.message_handler(commands=['schedule'])
 def view_schedule(message):
     if is_cleaner(message.chat.id):
-        bot.send_message(message.chat.id,"Выберите день недели\n🟩 - помечены рабочие дние\n🟥 - помечены выходные", reply_markup=schedule_slider_keyboard(message.chat.id,1))
+        bot.send_message(message.chat.id, "Выберите день недели\n🔴 - есть заказы\n⚪ - нет заказов", reply_markup=schedule_slider_keyboard(message.chat.id,0))
     elif is_admin(message.chat.id):
         bot.send_message(message.chat.id, "На данном этапе реализовано только для клинеров\nДобавьте свой id в list клеанеров\n(в jsons_config/settings.json  key = 'cleaners')")
     else:
@@ -107,7 +108,6 @@ def cal(call):
         bot.edit_message_caption(edit_order_caption_date(call.message.caption, result), call.message.chat.id, call.message.message_id, reply_markup=choose_time_keyboard())
 @bot.callback_query_handler(func=lambda call: True)
 def call(call):
-    #print(call)
     print("call data = ", call.data)
     if call.data[:2] == "qt":
         bot.delete_message(call.message.chat.id, call.message.message_id)
@@ -188,25 +188,24 @@ def call(call):
         order_dict["user_name"] = call.from_user.username
         not_verified_orders_list.append([order_id, order_dict])
         bot.delete_message(call.message.chat.id, call.message.message_id)
-        bot.send_message(call.message.chat.id, "Заказ Сформирован\nID заказа - " + str(order_id) +"\n После проверки заказа и назначаем клинeров вам придёт уведомление")
+        bot.send_message(call.message.chat.id, "Заказ Сформирован\nID заказа - " + str(order_id) +"\n После проверки заказа и назначения клинeра, вам придёт уведомление")
         try:
             for x in admins:
                 bot.send_message(x, "Поступил новый заказ. ID - " + str(order_id), reply_markup=view_new_order_keyboard(order_id))
         except:
             print("Сформирован заказ - ID = " + order_id + "\n", order_dict)
 
-    if call.data[:4] == "save":
-        #Тестово! Потом переделать, после того как мы назначаем клинера в ручную
-        order_id = call.data.split("*")
-        order_id = int(order_id[1])
-        print(order_id)
-        for x in not_verified_orders_list:
-            if x[0] == order_id:
-                print("зашло в if")
-                with open('orders/' + str(order_id) + ".json", 'w', encoding='utf-8') as f:
-                    json.dump(x[1], f, ensure_ascii=False, indent=4)
-                    f.close()
-                    break
+    # if call.data[:4] == "save":
+    #     #Тестово! Потом переделать, после того как мы назначаем клинера в ручную
+    #     order_id = call.data.split("*")
+    #     order_id = int(order_id[1])
+    #     for x in not_verified_orders_list:
+    #         if x[0] == order_id:
+    #             print("зашло в if")
+    #             with open('orders/' + str(order_id) + ".json", 'w', encoding='utf-8') as f:
+    #                 json.dump(x[1], f, ensure_ascii=False, indent=4)
+    #                 f.close()
+    #                 break
 
 
     if call.data == "ntvr":
@@ -267,22 +266,49 @@ def call(call):
                         not_verified_orders_list[i][1]["cleaner"] = cleaner_id
                         json.dump(not_verified_orders_list[i][1], f, ensure_ascii=False, indent=4)
                         f.close()
-                        k = 0
-                        for x in admins:
-                            if int(call.message.chat.id) == x:
-                                k = 1
-                        if k != 1:
+                        customer_id = not_verified_orders_list[i][1]["user_id"]
+                        print(customer_id, not is_admin((customer_id)))
+                        if not is_admin(customer_id):
                             text_for_user = "Здравствуйте " + str(not_verified_orders_list[i][1]["contact_info"]["name"]) + "!\nВаш заказ " + str(order_id) + " обработан\n" +\
                                 "Ваш клиннер " + str(cleaner_id) + "\nКонтакт менеджера @Serj_you\nТелефон +375 25 111 11 11"
                             bot.send_message(not_verified_orders_list[i][1]["user_id"], text_for_user)
-
                         not_verified_orders_list.pop(i)
                         break
             bot.send_message(call.message.chat.id, text, reply_markup=successful_cleaner_assign_keyboard)
 
+    if call.data[:8] == "schedule":
+        number_page = call.data.split("*")
+        number_page = int(number_page[1])
+        bot.edit_message_reply_markup(call.message.chat.id,call.message.message_id, reply_markup=schedule_slider_keyboard(call.message.chat.id,number_page))
 
+    if call.data[:9] == "sc_return":
+        number_page = call.data.split("*")
+        number_page = int(number_page[1])
+        bot.delete_message(call.message.chat.id,call.message.message_id)
+        bot.send_message(call.message.chat.id, "Выберите день недели\n🔴 - есть заказы\n⚪ - нет заказов",
+                         reply_markup=schedule_slider_keyboard(call.message.chat.id, number_page))
 
+    if call.data[:4] == "scwd":
+        work_day = call.data.split("*")
+        work_day = work_day[1].split(":")
+        number_page = work_day[1]
+        work_day = work_day[0]
+        bot.delete_message(call.message.chat.id,call.message.message_id)
+        bot.send_message(call.message.chat.id, "Выберите заказ для просмотра подробностей", reply_markup=schedule_view_work_day(call.message.chat.id, work_day, number_page))
 
+    if call.data[:8] == "sc_order":
+        temp = call.data.split("*")
+        temp = temp[1].split(":")
+        order_id = temp[0]
+        work_day = temp[1]
+        number_page = temp[2]
+        order_dict = open_json_order_by_id(order_id)
+        if len(order_dict.keys()) > 0:
+            text = get_text_from_order_dict(order_dict)
+            bot.delete_message(call.message.chat.id, call.message.message_id)
+            bot.send_photo(call.message.chat.id, "https://i.ytimg.com/vi/OVT90uo-fmQ/maxresdefault.jpg", text, reply_markup=cleaner_view_order_keyboard(order_id, work_day, number_page, order_dict))
+        else:
+            bot.send_message(call.message.chat.id, "Данный заказ не найден", reply_markup=thanks_keyboard)
 
 
 

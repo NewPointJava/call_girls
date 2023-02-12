@@ -49,7 +49,7 @@ not_verified_orders_list.append([1, dict({
     "order_info": {
         "room": 1,
         "bathroom": 1,
-        "date": "Пт 10 Фев",
+        "date": "Вт 14 Фев",
         "time": "10:00",
         "cleaning_time": 3,
         "frequency": "1 раз или первый раз",
@@ -77,7 +77,7 @@ not_verified_orders_list.append([2, dict({
     "order_info": {
         "room": 2,
         "bathroom": 2,
-        "date": "Пт 10 Фев",
+        "date": "Ср 15 фев",
         "time": "14:00",
         "cleaning_time": 4,
         "frequency": "1 раз или первый раз",
@@ -105,7 +105,7 @@ not_verified_orders_list.append([3, dict({
     "order_info": {
         "room": 2,
         "bathroom": 2,
-        "date": "CБ 11 Фев",
+        "date": "Чт 16 фев",
         "time": "11:00",
         "cleaning_time": 4,
         "frequency": "1 раз или первый раз",
@@ -132,7 +132,7 @@ not_verified_orders_list.append([4, dict({
     "order_info": {
         "room": 2,
         "bathroom": 2,
-        "date": "CБ 11 Фев",
+        "date": "Пт 17 фев",
         "time": "11:00",
         "cleaning_time": 4,
         "frequency": "1 раз или первый раз",
@@ -159,7 +159,7 @@ not_verified_orders_list.append([5, dict({
     "order_info": {
         "room": 2,
         "bathroom": 2,
-        "date": "CБ 11 Фев",
+        "date": "CБ 18 фев",
         "time": "11:00",
         "cleaning_time": 4,
         "frequency": "1 раз или первый раз",
