@@ -2,8 +2,8 @@
     "order_info": {
         "room": 1,
         "bathroom": 1,
-        "date": "Пт 17 фев",
-        "time": "12:30",
+        "date": "Ср 15 фев",
+        "time": "15:30",
         "cleaning_time": 3.0,
         "frequency": "1 раз или первый раз",
         "standart_price": 65,
@@ -13,14 +13,14 @@
         "payment": 65.0
     },
     "address": {
-        "street": "test",
-        "house": "test",
-        "flat": "test"
+        "street": "Минская",
+        "house": "505",
+        "flat": "303"
     },
     "contact_info": {
-        "name": "🥒",
-        "tel": "🌶",
-        "email": "🫑"
+        "name": "Сергей Козлов",
+        "tel": "312312321312",
+        "email": "🤢"
     },
     "user_id": 694443138,
     "user_name": "Serj_you",

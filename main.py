@@ -1,20 +1,18 @@
 import json
-import time
 from datetime import date, timedelta
-from telegram_bot_calendar import DetailedTelegramCalendar, LSTEP
-from keyboards import price_1st_step, st2_keyboard, choose_time_keyboard, choose_frequency_keyboard, \
+from telegram_bot_calendar import DetailedTelegramCalendar
+from keyboards import price_1st_step_keyboard, st2_keyboard, choose_time_keyboard, choose_frequency_keyboard, \
     st2_frequency_keyboard, extra_service_st1_keyboard, st2_extra_service_keyboard, check_order_keyboard, \
     thanks_keyboard, not_verified_slider_keyboard, admin_check_order_keyboard, feedbacks_slider_keyboard, \
     choose_cleaner_keyboard, successful_cleaner_assign_keyboard, view_new_order_keyboard, schedule_slider_keyboard, \
-    schedule_view_work_day, cleaner_view_order_keyboard, exit_keyboard
-from next_step_handlers_func import cath_addres
+    schedule_view_work_day, cleaner_view_order_keyboard, exit_keyboard, ask_to_feedback_keyboard
+from next_step_handlers_func import cath_addres, cath_feed_back
 from service_function import cost_calculation_st1, order_card, edit_order_caption_date, edit_order_caption_time, \
     edit_caption_extra_service, edit_caption_discount, from_caption_to_dict, is_admin, \
-    get_text_from_order_dict, get_text_from_feedback_dict, is_cleaner, open_json_order_by_id, \
-    manual_assign_cleaner_to_order
-from get_and_set_json_information import get_and_set_order_id_from_json
-from settings import bot, room_price, bathroom_price, check_in_price, orders, not_verified_orders_list, admins, \
-    feedbacks, schedule
+    get_text_from_order_dict, get_text_from_feedback_dict, is_cleaner, manual_assign_cleaner_to_order, save_feedback
+from get_and_set_json_information import get_and_set_order_id_from_json, get_order_dict_from_json_by_id, \
+    update_order_json_from_dict
+from settings import bot, room_price, bathroom_price, check_in_price, orders, not_verified_orders_list, admins
 
 
 @bot.message_handler(commands=['start'])
@@ -109,7 +107,7 @@ def cl_help(message):
 def new_order(message):
     bot.send_message(message.chat.id, "Ниже будет представлен расчёт стоимости.\nВы можете увеличивать и уменьшать количество комнат и санузлов.\n "\
             "Далее вы сможете изменять время, частоту и доп. услуги.\n\nСтоимость будет меняться автоматически", reply_markup=thanks_keyboard)
-    bot.send_message(message.chat.id, f'1 - комната 1 - санузел = {room_price + bathroom_price + check_in_price}р', reply_markup=price_1st_step(1, 1))
+    bot.send_message(message.chat.id, f'1 - комната 1 - санузел = {room_price + bathroom_price + check_in_price}р', reply_markup=price_1st_step_keyboard(1, 1))
 
 
 @bot.message_handler(commands=['not_verified'])
@@ -129,7 +127,7 @@ def view_feedback(message):
 @bot.message_handler(commands=['schedule'])
 def view_schedule(message):
     if is_cleaner(message.chat.id):
-        bot.send_message(message.chat.id, "Выберите день недели\n🔴 - есть заказы\n⚪ - нет заказов", reply_markup=schedule_slider_keyboard(message.chat.id, 0))
+        bot.send_message(message.chat.id, "Выберите день недели\n🔴 - есть заказы\n⚪ - нет заказов", reply_markup=schedule_slider_keyboard(message.chat.id, 1))
     elif is_admin(message.chat.id):
         bot.send_message(message.chat.id, "На данном этапе реализовано только для клинеров\nДобавьте свой id в list клеанеров\n(в jsons_config/settings.json  key = 'cleaners')")
     else:
@@ -143,6 +141,8 @@ def cal(call):
         bot.edit_message_reply_markup(call.message.chat.id, call.message.message_id,reply_markup=key)
     elif result:
         bot.edit_message_caption(edit_order_caption_date(call.message.caption, result), call.message.chat.id, call.message.message_id, reply_markup=choose_time_keyboard())
+
+
 @bot.callback_query_handler(func=lambda call: True)
 def call(call):
     print("call data = ", call.data)
@@ -153,7 +153,7 @@ def call(call):
         if call.data[3] != "$":
             if call.data[3] != ":":
                 new_text, room_amount, bathroom_amount = cost_calculation_st1(call.data)
-                bot.edit_message_text(new_text, call.message.chat.id, call.message.message_id, reply_markup=price_1st_step(room_amount, bathroom_amount))
+                bot.edit_message_text(new_text, call.message.chat.id, call.message.message_id, reply_markup=price_1st_step_keyboard(room_amount, bathroom_amount))
             else:
                 bot.delete_message(call.message.chat.id, call.message.message_id)
                 amount = call.data.split(":")
@@ -162,7 +162,7 @@ def call(call):
                 amount[1] = int(amount[1])
                 bot.send_message(call.message.chat.id,
                                  f'{amount[0]} - комната {amount[1]} - санузел = {check_in_price + room_price*amount[0] + bathroom_price* amount[1]}р',
-                                 reply_markup=price_1st_step(int(amount[0]), int(amount[1])))
+                                 reply_markup=price_1st_step_keyboard(int(amount[0]), int(amount[1])))
 
         if call.data[3] =="$":
             bot.delete_message(call.message.chat.id, call.message.message_id)
@@ -204,9 +204,9 @@ def call(call):
             try:
                 bot.edit_message_caption(caption, call.message.chat.id, call.message.message_id, reply_markup=choose_frequency_keyboard())
             except:
-                print("nothing to change")
+                bot.answer_callback_query(call.id, "Этот параметр уже установлен", show_alert=False)
         if call.data[4:] == "check_order":
-            bot.edit_message_reply_markup(call.message.chat.id,call.message.message_id,reply_markup=check_order_keyboard(call.message.caption))
+            bot.edit_message_reply_markup(call.message.chat.id,call.message.message_id,reply_markup=check_order_keyboard())
 
     if call.data[:3] == "st3":
         if call.data[4:] == "address":
@@ -291,7 +291,6 @@ def call(call):
                         json.dump(not_verified_orders_list[i][1], f, ensure_ascii=False, indent=4)
                         f.close()
                         customer_id = not_verified_orders_list[i][1]["user_id"]
-                        print(customer_id, not is_admin((customer_id)))
                         if not is_admin(customer_id):
                             text_for_user = "Здравствуйте " + str(not_verified_orders_list[i][1]["contact_info"]["name"]) + "!\nВаш заказ " + str(order_id) + " обработан\n" +\
                                 "Ваш клиннер " + str(cleaner_id) + "\nКонтакт менеджера @Serj_you\nТелефон +375 25 111 11 11"
@@ -326,7 +325,7 @@ def call(call):
         order_id = temp[0]
         work_day = temp[1]
         number_page = temp[2]
-        order_dict = open_json_order_by_id(order_id)
+        order_dict = get_order_dict_from_json_by_id(order_id)
         if len(order_dict.keys()) > 0:
             text = get_text_from_order_dict(order_dict)
             bot.delete_message(call.message.chat.id, call.message.message_id)
@@ -334,6 +333,34 @@ def call(call):
         else:
             bot.send_message(call.message.chat.id, "Данный заказ не найден", reply_markup=thanks_keyboard)
 
+    if call.data[:4] == "done":
+        order_id = call.data.split("*")
+        order_id = int(order_id[1])
+        order_dict = get_order_dict_from_json_by_id(order_id)
+        order_dict["is_done"] = True
+        update_order_json_from_dict(order_id, order_dict)
+        bot.delete_message(call.message.chat.id, call.message.message_id)
+        bot.send_message(call.message.chat.id,"Благодарим за работу.")
+        bot.send_message(order_dict["user_id"], "Ваш заказ на уборку - №" + str(order_id) + " выполнен.\nЖелаете оставить отзыв?", reply_markup=ask_to_feedback_keyboard(order_id))
+
+
+    if call.data[:10] == "cutomer_fb":
+        order_id = call.data.split("*")
+        order_id = order_id[1]
+        bot.delete_message(call.message.chat.id,call.message.message_id)
+        m = bot.send_message(call.message.chat.id, "Отправьте текстовым сообщением ниже - ваш отзыв")
+        bot.register_next_step_handler(m, cath_feed_back, order_id)
+
+    if call.data[:9] == "accept_fb":
+        order_id = call.data.split("*")
+        order_id = int(order_id[1])
+        save_feedback(order_id, call.message.text)
+        bot.delete_message(call.message.chat.id, call.message.message_id)
+        bot.send_message(call.message.chat.id, "Отзыв сохранён",reply_markup=exit_keyboard)
+
+
+    if call.data[:7] == "day_off":
+        bot.answer_callback_query(call.id, "В этот день выходной", show_alert=False)
 
 
 print("Ready")

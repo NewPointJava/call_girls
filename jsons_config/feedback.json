@@ -34,6 +34,48 @@
             "date": "Пт 10 фeв",
             "cleaner": "company",
             "order_id": 5
+        },
+        {
+            "name": "test_name",
+            "text": "Отличная уборку, жаль это был тестовый отзыв",
+            "date": "Пт 10 фев",
+            "cleaner": 694443138,
+            "order_id": 1
+        },
+        {
+            "name": "test name",
+            "text": "13212312313212",
+            "date": "Пт 10 фев",
+            "cleaner": 694443138,
+            "order_id": 1
+        },
+        {
+            "name": "test name",
+            "text": "Всегда бы так",
+            "date": "Пт 10 фев",
+            "cleaner": 694443138,
+            "order_id": 1
+        },
+        {
+            "name": "test name",
+            "text": "Что-то на чистом",
+            "date": "Пт 10 фев",
+            "cleaner": 694443138,
+            "order_id": 1
+        },
+        {
+            "name": "test name",
+            "text": "Чистота да и только",
+            "date": "Пт 10 фев",
+            "cleaner": 694443138,
+            "order_id": 1
+        },
+        {
+            "name": "33",
+            "text": "kkkk",
+            "date": "Пт 10 фев",
+            "cleaner": 694443138,
+            "order_id": 2
         }
     ]
 }

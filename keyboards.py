@@ -1,8 +1,7 @@
 from datetime import datetime, timedelta
-
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
+from settings import extra_name_hour_cost_dict, feedbacks, cleaners, schedule
 
-from settings import extra_name_hour_cost_dict, feedbacks, cleaners, schedule, admins
 
 exit_button = InlineKeyboardButton("Выход ❌", callback_data="qt")
 exit_keyboard = InlineKeyboardMarkup().add(exit_button)
@@ -12,7 +11,7 @@ thanks_keyboard = InlineKeyboardMarkup().add(thanks_buttom)
 successful_cleaner_assign_keyboard = InlineKeyboardMarkup().add(InlineKeyboardButton("Вернуться к списку заказов", callback_data="ntvr")).add(exit_button)
 
 
-def price_1st_step(room_amount, bathroom_amount):
+def price_1st_step_keyboard(room_amount, bathroom_amount):
     keyboard = InlineKeyboardMarkup(row_width=2)
 
     increase_room = InlineKeyboardButton("кол-во комнат ➕", callback_data="st1*" + str(room_amount + 1) + "*" + str(bathroom_amount))
@@ -81,7 +80,6 @@ def st2_extra_service_keyboard(room_amount, bathroom_amount):
     return keyboard
 
 def extra_service_st1_keyboard(caption):
-    print("extra_service_st1_keyboard")
     caption = caption.split("\n")
     keyboard = InlineKeyboardMarkup(row_width=3)
     next_bottom = InlineKeyboardButton("Перейти к следующему шагу ☑️", callback_data="st2*frequency")
@@ -111,7 +109,6 @@ def st2_frequency_keyboard(caption):
             time = x
             time = time.split(" ")
             time = time[-1]
-            print(time)
 
     keyboard = InlineKeyboardMarkup()
     choose_frequency_bottom = InlineKeyboardButton("Выбрать частоту уборки ☑️", callback_data="st2*fn")
@@ -142,7 +139,7 @@ def choose_frequency_keyboard():
     return keyboard
 
 
-def check_order_keyboard(caption):
+def check_order_keyboard():
 
     keyboard = InlineKeyboardMarkup(row_width=1)
 
@@ -157,13 +154,15 @@ def check_order_keyboard(caption):
     return keyboard
 
 
-def send_order_to_admin():
+def send_order_to_admin_keyboard():
     keyboard = InlineKeyboardMarkup(row_width=1)
     keyboard.add(InlineKeyboardButton("Заказать уборку ☑️", callback_data="add"), InlineKeyboardButton("Удалить заказ",callback_data="qt"))
     return keyboard
 
 
 def not_verified_slider_keyboard(not_verified_orders_list, page_number):
+    # Создаёт клавиатуру слайдер для просмотра всех необрабработанных заказов
+
     keyboard = InlineKeyboardMarkup(row_width=3)
 
     backbutton = InlineKeyboardButton(text="предыдущие", callback_data="nt_ver*" + str(page_number - 1))
@@ -210,6 +209,7 @@ def admin_check_order_keyboard(order_id):
 
 
 def feedbacks_slider_keyboard(feedback_number):
+    # Клавиатура для преключения между отзывами
 
     keyboard = InlineKeyboardMarkup(row_width=3)
     next_number = feedback_number+1
@@ -298,24 +298,18 @@ def schedule_slider_keyboard(cleaner_id, page_number):
 
 def schedule_view_work_day(cleaner_id, work_day, return_page_number):
     cleaner_work_day = schedule[str(cleaner_id)][work_day]
-    print(cleaner_work_day)
     order_list = []
     time_start_list = []
     time_end_list = []
     address_list = []
     temp = 0
     for x in cleaner_work_day:
-        print(len(x))
         if len(x) == 5:
             order_list.append(x[3])
             time_start_list.append(x[0])
             address_list.append(x[4])
         elif len(x) == 3:
                 time_end_list.append(x[0])
-    print("order_list = ", order_list)
-    for i in range(len(order_list)):
-        print(order_list[i], time_start_list[i], time_end_list[i])
-
     keyboard = InlineKeyboardMarkup(row_width=1)
 
     for i in range(len(order_list)):
@@ -333,22 +327,27 @@ def cleaner_view_order_keyboard(order_id, return_work_day, return_number_page, o
     keyboard = InlineKeyboardMarkup(row_width=1)
     return_to_choose_order_bottom = InlineKeyboardButton("🔙  Вернуться к выбору заказа", callback_data="scwd*" + return_work_day+":" + str(return_number_page))
     return_to_choose_work_day_bottom = InlineKeyboardButton("🔙  Вернуться к выбору рабочего дня", callback_data="sc_return*" + str(return_number_page))
-    done_cleaning_bottom = InlineKeyboardButton("✅ Уборка закончена\nОтправить запрос на отзыв", callback_data="cleaning_done*"+ str(order_id))
+    done_cleaning_bottom = InlineKeyboardButton("✅ Уборка закончена\nОтправить запрос на отзыв", callback_data="done*"+ str(order_id))
     today = datetime.now()
     date_start = datetime.strptime(str(today.year) + " " + order_dict["order_info"]["date"] + " " + order_dict["order_info"]["time"], "%Y %a %d %b %H:%M")
     customer_id = order_dict["user_id"]
-    k = 0
 
     keyboard.add(return_to_choose_order_bottom, return_to_choose_work_day_bottom)
-    for x in admins:
-        if customer_id == x:
-            k = 1
-            break
-    if k == 0 and date_start < today:
+    if date_start < today:
         keyboard.add(done_cleaning_bottom)
     keyboard.add(exit_button)
     return keyboard
 
 
+def ask_to_feedback_keyboard(order_id):
+    keyboard = InlineKeyboardMarkup()
+    keyboard.add(InlineKeyboardButton("Оставить отзыв", callback_data="cutomer_fb*" + str(order_id)))
+    keyboard.add(thanks_buttom)
+    return keyboard
 
 
+def accept_feedback_keyboard(order_id):
+    keyboard = InlineKeyboardMarkup()
+    keyboard.add(InlineKeyboardButton("Сохранить отзыв", callback_data="accept_fb*" + str(order_id)))
+    keyboard.add(exit_button)
+    return keyboard

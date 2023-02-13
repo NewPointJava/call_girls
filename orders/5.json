@@ -1,0 +1,30 @@
+{
+    "order_info": {
+        "room": 1,
+        "bathroom": 1,
+        "date": "Ср 15 фев",
+        "time": "10:00",
+        "cleaning_time": 3.0,
+        "frequency": "Раз в две недели",
+        "standart_price": 65,
+        "extra_service": [],
+        "extra_price": null,
+        "discount_amount": 6.5,
+        "payment": 58.5
+    },
+    "address": {
+        "street": "96",
+        "house": "66",
+        "flat": "55"
+    },
+    "contact_info": {
+        "name": "88",
+        "tel": "88",
+        "email": "88"
+    },
+    "user_id": 2077212957,
+    "user_name": "KatsiarynaVol",
+    "is_created_by_admin": true,
+    "cleaner": 694443138,
+    "is_done": false
+}

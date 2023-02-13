@@ -2,8 +2,8 @@
     "order_info": {
         "room": 1,
         "bathroom": 1,
-        "date": "Вт 21 фев",
-        "time": "14:30",
+        "date": "Вт 14 фев",
+        "time": "9:00",
         "cleaning_time": 3.0,
         "frequency": "1 раз или первый раз",
         "standart_price": 65,
@@ -13,18 +13,18 @@
         "payment": 65.0
     },
     "address": {
-        "street": "J",
-        "house": "J",
-        "flat": "G"
+        "street": "Мясникова",
+        "house": "35",
+        "flat": "37"
     },
     "contact_info": {
-        "name": "C",
-        "tel": "C",
-        "email": "G"
+        "name": "Козлов",
+        "tel": "+375259804732",
+        "email": "brest.skup@gmail.com"
     },
-    "user_id": 444908023,
-    "user_name": "by_connor",
-    "is_created_by_admin": false,
+    "user_id": 694443138,
+    "user_name": "Serj_you",
+    "is_created_by_admin": true,
     "cleaner": 694443138,
     "is_done": false
 }

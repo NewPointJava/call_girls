@@ -1,18 +1,17 @@
-import json
 from datetime import datetime, date, timedelta
 
-from telebot.types import InlineKeyboardMarkup
-
-from get_and_set_json_information import set_schedule_to_json
+from get_and_set_json_information import set_schedule_to_json, get_order_dict_from_json_by_id, \
+    set_feedbacks_list_to_json
 from settings import check_in_price, room_price, bathroom_price, check_in_time, room_time, bathroom_time, \
     cleaning_frequency_and_discount_dict, extra_name_hour_cost_dict, empty_order, admins, feedbacks, cleaners, \
-    not_verified_orders_list, schedule, empty_day
+    not_verified_orders_list, schedule, empty_day, empty_feedback
 import locale
 
 locale.setlocale(category=locale.LC_ALL, locale="Russian")
 
 
 def cost_calculation_st1(call_data):
+    # изменяет текст по количеству жилых и санузлов  и подсчитывает стоимость
     call_data = call_data.split("*")
     room_amount = int(call_data[1])
     bathroom_amount = int(call_data[2])
@@ -382,16 +381,6 @@ def get_text_from_feedback_dict(feedback_number):
     return text
 
 
-def open_json_order_by_id(order_id):
-    try:
-        f = open("orders/" + str(order_id) + ".json", "r", encoding="utf-8")
-        order_dict = json.loads(f.read())
-        f.close()
-    except:
-        return ""
-    return order_dict
-
-
 def manual_assign_cleaner_to_order(cleaner_id, order_id):
     order_dict = {}
     temp = 0
@@ -477,6 +466,23 @@ def manual_assign_cleaner_to_order(cleaner_id, order_id):
         print("1-ый этап не пройден")
         return False, "Тут Хуета\nЛибо заказ длится больше 9 часов\nЛибо он закончится позже 22:00\nА в  ручную  пока что двоих клинеров нельзя назначить :("
 
+
+def save_feedback(order_id, call_text):
+    print(call_text)
+    feedback_text = call_text.split("\n")
+    print(feedback_text)
+    feedback_text = feedback_text[2][1:-1]
+    print(feedback_text)
+    feedback_dict = empty_feedback
+    order_dict = get_order_dict_from_json_by_id(order_id)
+    feedback_dict["name"] = order_dict["contact_info"]["name"]
+    feedback_dict["text"] = feedback_text
+    feedback_dict["date"] = order_dict["order_info"]["date"]
+    feedback_dict["cleaner"] = order_dict["cleaner"]
+    feedback_dict["order_id"] = order_id
+    print(feedback_dict)
+    feedbacks.append(feedback_dict)
+    set_feedbacks_list_to_json(feedbacks)
 
 
 

@@ -12,6 +12,7 @@ room_price, room_time, bathroom_price, bathroom_time, check_in_time, check_in_pr
 admins, cleaners = get_admins_and_cleaners_from_json()
 schedule = get_schedule_from_json()
 feedbacks = get_feedbacks_from_json()
+empty_order = get_empy_order_from_order_0()
 
 not_verified_orders_list = []
 orders = dict()
@@ -36,149 +37,12 @@ for i in range(28):
     empty_day.append([temp, True])
     hour = hour + timedelta(minutes=30)
 
-empty_order = get_empy_order_from_order_0()
+
 
 empty_feedback = dict({
+    "name": None,
     "text": None,
     "date": None,
     "cleaner": None,
     "order_id": None
 })
-
-not_verified_orders_list.append([1, dict({
-    "order_info": {
-        "room": 1,
-        "bathroom": 1,
-        "date": "Вт 14 Фев",
-        "time": "10:00",
-        "cleaning_time": 3,
-        "frequency": "1 раз или первый раз",
-        "standart_price": 10,
-        "extra_service": [],
-        "extra_price": None,
-        "discount_amount": None,
-        "payment": 10
-    },
-    "address": {
-        "street": "111",
-        "house": "1111",
-        "flat": "11111"
-    },
-    "contact_info": {
-        "name": "name1",
-        "tel": "tel1",
-        "email": "email1"
-    },
-    "user_id": 1111111,
-    "user_name": "Serj_you"
-})])
-
-not_verified_orders_list.append([2, dict({
-    "order_info": {
-        "room": 2,
-        "bathroom": 2,
-        "date": "Ср 15 фев",
-        "time": "14:00",
-        "cleaning_time": 4,
-        "frequency": "1 раз или первый раз",
-        "standart_price": 20,
-        "extra_service": [],
-        "extra_price": None,
-        "discount_amount": None,
-        "payment": 20
-    },
-    "address": {
-        "street": "222",
-        "house": "2222",
-        "flat": "22222"
-    },
-    "contact_info": {
-        "name": "name2",
-        "tel": "tel2",
-        "email": "email2"
-    },
-    "user_id": 222222,
-    "user_name": None
-})])
-
-not_verified_orders_list.append([3, dict({
-    "order_info": {
-        "room": 2,
-        "bathroom": 2,
-        "date": "Чт 16 фев",
-        "time": "11:00",
-        "cleaning_time": 4,
-        "frequency": "1 раз или первый раз",
-        "standart_price": 20,
-        "extra_service": [],
-        "extra_price": None,
-        "discount_amount": None,
-        "payment": 20
-    },
-    "address": {
-        "street": "222",
-        "house": "2222",
-        "flat": "22222"
-    },
-    "contact_info": {
-        "name": "name2",
-        "tel": "tel2",
-        "email": "email2"
-    },
-    "user_id": 222222,
-    "user_name": "Serj_you"
-})])
-not_verified_orders_list.append([4, dict({
-    "order_info": {
-        "room": 2,
-        "bathroom": 2,
-        "date": "Пт 17 фев",
-        "time": "11:00",
-        "cleaning_time": 4,
-        "frequency": "1 раз или первый раз",
-        "standart_price": 20,
-        "extra_service": [],
-        "extra_price": None,
-        "discount_amount": None,
-        "payment": 20
-    },
-    "address": {
-        "street": "222",
-        "house": "2222",
-        "flat": "22222"
-    },
-    "contact_info": {
-        "name": "name2",
-        "tel": "tel2",
-        "email": "email2"
-    },
-    "user_id": 222222,
-    "user_name": "Serj_you"
-})])
-not_verified_orders_list.append([5, dict({
-    "order_info": {
-        "room": 2,
-        "bathroom": 2,
-        "date": "CБ 18 фев",
-        "time": "11:00",
-        "cleaning_time": 4,
-        "frequency": "1 раз или первый раз",
-        "standart_price": 20,
-        "extra_service": [],
-        "extra_price": None,
-        "discount_amount": None,
-        "payment": 20
-    },
-    "address": {
-        "street": "222",
-        "house": "2222",
-        "flat": "22222"
-    },
-    "contact_info": {
-        "name": "name2",
-        "tel": "tel2",
-        "email": "email2"
-    },
-    "user_id": 222222,
-    "user_name": "Serj_you"
-})])

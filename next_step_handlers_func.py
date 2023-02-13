@@ -1,4 +1,5 @@
-from keyboards import thanks_keyboard, send_order_to_admin, admin_check_order_keyboard
+
+from keyboards import thanks_keyboard,send_order_to_admin_keyboard,admin_check_order_keyboard,accept_feedback_keyboard
 from service_function import from_caption_to_dict, get_text_from_order_dict, is_admin
 from get_and_set_json_information import get_and_set_order_id_from_json
 from settings import bot, orders, admins, not_verified_orders_list
@@ -359,11 +360,11 @@ def cath_email(message, text, m_id, order_id):
 
         if not is_admin(message.chat.id):
             try:
-                bot.edit_message_caption(orders[message.chat.id], message.chat.id, order_id, reply_markup=send_order_to_admin)
+                bot.edit_message_caption(orders[message.chat.id], message.chat.id, order_id, reply_markup=send_order_to_admin_keyboard)
             except:
                 bot.send_photo(message.chat.id,
                                "https://kartinkin.net/uploads/posts/2021-07/1626169458_2-kartinkin-com-p-uborka-art-art-krasivo-3.jpg",
-                               orders[message.chat.id], reply_markup=send_order_to_admin())
+                               orders[message.chat.id], reply_markup=send_order_to_admin_keyboard())
         else:
             bot.delete_message(message.chat.id, order_id)
             order_id = get_and_set_order_id_from_json()
@@ -387,3 +388,20 @@ def cath_email(message, text, m_id, order_id):
         bot.register_next_step_handler(m, cath_email, text, m_id, order_id)
 
 
+def cath_feed_back(message, order_id):
+    if message.text == "/stop":
+        bot.delete_message(message.chat.id, message.message_id)
+        bot.send_message(message.chat.id,
+                         "Вы вышли из заполнения отзыва",
+                         reply_markup=thanks_keyboard)
+
+    elif message.content_type == "text":
+        feedback = message.text
+        bot.send_message(message.chat.id,"Спасибо за ваш отзыв!\nВоспользуйтесь услугами КлинниБогини в следующий раз со скидкой 5%", reply_markup=thanks_keyboard)
+
+        for x in admins:
+            bot.send_message(x, "@" + message.from_user.username +" оставил отзыв на заказ №" + str(order_id) + "⬇️\n\n\"" + feedback + "\"", reply_markup=accept_feedback_keyboard(order_id))
+    else:
+        m = bot.send_message(message.chat.id,
+                             "что-то пошло не так, попробуй снова написать и отправить отзыв. Принимается только текст\nДля выхода пришли '/stop")
+        bot.register_next_step_handler(m, cath_feed_back, order_id)

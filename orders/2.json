@@ -1,0 +1,41 @@
+{
+    "order_info": {
+        "room": 2,
+        "bathroom": 1,
+        "date": "Пт 10 фев",
+        "time": "12:00",
+        "cleaning_time": 5.5,
+        "frequency": "Раз в две недели",
+        "standart_price": 79,
+        "extra_service": [
+            [
+                "Внутри духовки",
+                1,
+                25
+            ],
+            [
+                "Помоем посуду",
+                0.5,
+                10
+            ]
+        ],
+        "extra_price": 114,
+        "discount_amount": 11.4,
+        "payment": 102.6
+    },
+    "address": {
+        "street": "555",
+        "house": "55",
+        "flat": "22"
+    },
+    "contact_info": {
+        "name": "33",
+        "tel": "66",
+        "email": "6"
+    },
+    "user_id": 694443138,
+    "user_name": "@Serj_you",
+    "is_created_by_admin": false,
+    "cleaner": 694443138,
+    "is_done": false
+}

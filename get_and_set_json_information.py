@@ -50,7 +50,7 @@ def get_feedbacks_from_json():
     return feedbacks["feedbacks"]
 
 
-def set_feedbacks_to_json(feedbacks_list):
+def set_feedbacks_list_to_json(feedbacks_list):
     try:
         with open('jsons_config/feedback.json', 'w', encoding='utf-8') as f:
             json.dump(dict({"feedbacks": feedbacks_list}), f, ensure_ascii=False, indent=4)
@@ -71,3 +71,22 @@ def get_empy_order_from_order_0():
     empty_order = json.loads(f.read())
     f.close()
     return empty_order
+
+
+def get_order_dict_from_json_by_id(order_id):
+    try:
+        f = open("orders/" + str(order_id) + ".json", "r", encoding="utf-8")
+        order_dict = json.loads(f.read())
+        f.close()
+    except:
+        return ""
+    return order_dict
+
+
+def update_order_json_from_dict(order_id, order_dict):
+    try:
+        with open('orders/' + str(order_id) + '.json', 'w', encoding='utf-8') as f:
+            json.dump(order_dict, f, ensure_ascii=False, indent=4)
+        return True
+    except:
+        return False
